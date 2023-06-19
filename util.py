@@ -15,8 +15,7 @@ def generated_id(csv_file):
 
 
 def get_time():
-    current_date = datetime.datetime.now()
-    return int(datetime.datetime.timestamp(current_date))
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
 def delete_image_file(file_path):
