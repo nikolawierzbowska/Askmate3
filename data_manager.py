@@ -1,16 +1,16 @@
-import os
-import uuid
-
 import connection
 import util
-
-questions_csv = "data/question.csv"
-answers_csv = "data/answer.csv"
-
-HEADERS_Q = ["id", "submission_time", "view_number", "vote_number", "title", "message", "image"]
-HEADERS_A = ["id", "submission_time", "vote_number", "question_id", "message", "image"]
+import uuid
+import os
 
 
+@connection.connection_handler
+def list_questions_(cursor):
+    query = """
+     SELECT *
+     FROM question"""
+    cursor.execute(query)
+    return cursor.fetchall()
 
 @connection.connection_handler
 def get_question_data_by_id_dm(cursor,question_id):
@@ -22,51 +22,66 @@ def get_question_data_by_id_dm(cursor,question_id):
     return cursor.fetchone()
 
 
-# @connection.connection_handler
-# def get_answers_by_question_id_dm(cursor,question_id):
-#     query = """
-#      SELECT *
-#      FROM answer
-#      WHERE id= %(question_id)s;"""
-#     cursor.execute(query,{"question_id":question_id})
-#     return cursor.fetchall()
-
 @connection.connection_handler
-def list_questions_(cursor):
+def get_answers_by_question_id_dm(cursor,question_id):
     query = """
      SELECT *
-     FROM question"""
-    cursor.execute(query)
+     FROM answer
+     WHERE question_id= %(question_id)s;
+     ORDER BY submission_time"""
+    cursor.execute(query,{"question_id":question_id})
     return cursor.fetchall()
 
 
 
-# def get_answers_by_question_id_dm(question_id):
-#     data_answers = connection.read_dict_from_file(answers_csv)
-#     for answer in data_answers:
-#         answer["submission_time"] = util.convert_timestamp_to_date(int(answer["submission_time"]))
-#     sorted_answers = sorted(data_answers, key=lambda x: x["submission_time"], reverse=True)
-#     return [line for line in sorted_answers if line['question_id'] == question_id]
-
-
-# def add_question_dm(title, message, image_path=None, question_id=None):
-#     questions = connection.read_dict_from_file(questions_csv)
-#     question_id = str(util.generated_id(questions_csv)) if question_id is None else question_id
-#     new_question = {
-#         'id': question_id,
-#         "submission_time": util.get_time(),
-#         "view_number": 0,
-#         "vote_number": 0,
-#         'title': title,
-#         'message': message,
-#         "image": image_path
-#
-#     }
-#     questions.append(new_question)
-#     connection.write_dict_to_file_str(questions_csv, questions, HEADERS_Q)
+# def add_question_dm(cursor, title, message, image_path):
+#     question_id = str(util.generated_id(cursor, "question"))
+#     time = util.get_time()
+#     query = """
+#         INSERT INTO question
+#         VALUES (%s, %s, 0, 0, %s, %s, %s);"""
+#     cursor.execute(query, (question_id, time, title, message, image_path))
 #     return question_id
-#
-#
+
+@connection.connection_handler
+def add_question_dm(cursor, data_q):
+    cursor.execute("""
+                    INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
+                    VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s);
+                    """,
+                   {'submission_time': util.get_time(),
+                    'view_number': 0,
+                    'vote_number': 0,
+                    'title': data_q['title'],
+                    'message': data_q['message'],
+                    'image': data_q['image']})
+    # new_question_id = cursor.fetchone()['id']
+    # return new_question_id
+
+
+@connection.connection_handler
+def get_newest_question_dm(cursor):
+    query = """
+        SELECT MAX(id) AS max_id
+        FROM question
+        """
+    cursor.execute(query)
+    result = cursor.fetchone()
+    if result:
+        return result['max_id']
+    return None
+
+# @connection.connection_handler
+# def add_answer_dm(cursor, message, question_id, image_path=None):
+#     answer_id = str(util.generated_id(cursor, 'public.answers'))
+#     time = util.get_time()
+#     query = """
+#         INSERT INTO question
+#         VALUES (%s, %s, 0, 0, %s, %s, %s);"""
+#     cursor.execute(query, (question_id, time, title, message, image_path))
+#     return question_id
+
+
 # def add_answer_dm(message, question_id, image_path=None):
 #     answers = connection.read_dict_from_file(answers_csv)
 #     new_answer_id = str(util.generated_id(answers_csv))
@@ -81,14 +96,14 @@ def list_questions_(cursor):
 #     answers.append(new_answer)
 #     connection.write_dict_to_file_str(answers_csv, answers, HEADERS_A)
 
-@connection.connection_handler
-def sorted_questions_(cursor):
-    query = """
-     SELECT submission_time, view_number, vote_number, title, mesage
-     FROM question
-     ORDER BY submission_time, view_number, vote_number, title, mesage ASC|DESC"""
-    cursor.execute(query)
-    return cursor.fetchall()
+# @connection.connection_handler
+# def sorted_questions_(cursor):
+#     query = """
+#      SELECT submission_time, view_number, vote_number, title, mesage
+#      FROM question
+#      ORDER BY submission_time, view_number, vote_number, title, mesage ASC|DESC"""
+#     cursor.execute(query)
+#     return cursor.fetchall()
 
 
 # def get_sorted_questions(order_by, order_direction):
@@ -115,30 +130,6 @@ def sorted_questions_(cursor):
     # elif order_by == 'answers':
     #     questions.sort(key=lambda q: int(q['answers']), reverse=(order_direction == 'desc'))
     # return questions
-
-
-# def get_sorted_questions(order_by, order_direction):
-#     questions = connection.read_dict_from_file(questions_csv)
-#     answers = connection.read_dict_from_file(answers_csv)
-#     for question in questions:
-#         question["submission_time"] = util.convert_timestamp_to_date(int(question["submission_time"]))
-#         question['answers'] = 0
-#         for answer in answers:
-#             if question['id'] == answer['question_id']:
-#                 question['answers'] += 1
-#     if order_by == 'title':
-#         questions.sort(key=lambda q: q['title'].lower(), reverse=(order_direction == 'desc'))
-#     elif order_by == 'submission_time':
-#         questions.sort(key=lambda q: q['submission_time'], reverse=(order_direction == 'desc'))
-#     elif order_by == 'message':
-#         questions.sort(key=lambda q: q['message'].lower(), reverse=(order_direction == 'desc'))
-#     elif order_by == 'view_number':
-#         questions.sort(key=lambda q: int(q['view_number']), reverse=(order_direction == 'desc'))
-#     elif order_by == 'vote_number':
-#         questions.sort(key=lambda q: int(q['vote_number']), reverse=(order_direction == 'desc'))
-#     elif order_by == 'answers':
-#         questions.sort(key=lambda q: int(q['answers']), reverse=(order_direction == 'desc'))
-#     return questions
 
 #
 # def delete_answer_by_id(answer_id):
@@ -217,20 +208,24 @@ def sorted_questions_(cursor):
 #             data["vote_number"] = number_of_votes
 #     connection.write_dict_to_file_str(file_csv, data_list, headers)
 
-
-# def view_question_dm(question_id):
-#     questions = connection.read_dict_from_file(questions_csv)
-#     for question in questions:
-#         if question['id'] == question_id:
-#             number_of_views = int(question["view_number"])
-#             number_of_views += 1
-#             question["view_number"] = number_of_views
-#
-#     connection.write_dict_to_file_str(questions_csv, questions, HEADERS_Q)
-#
 #
 # def save_image_dm(image_file):
 #     unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
 #     image_path = 'static/uploads/' + unique_filename
 #     image_file.save(image_path)
 #     return image_path
+
+# @connection.connection_handler
+# def view_question_dm(cursor, question_id):
+#     query = """
+#         UPDATE question
+#         SET view_number = view_number + 1
+#         WHERE id = %s;"""
+#     cursor.execute(query, question_id)
+#     return question_id
+
+def save_image_dm(image_file):
+    unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
+    image_path = 'static/uploads/' + unique_filename
+    image_file.save(image_path)
+    return image_path

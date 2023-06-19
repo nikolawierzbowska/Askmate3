@@ -1,10 +1,6 @@
-import csv
 import os
-
 import psycopg2
 import psycopg2.extras
-
-
 
 def get_connection_string():
     # setup connection string
@@ -27,7 +23,6 @@ def get_connection_string():
     else:
         raise KeyError('Some necessary environment variable(s) are not defined')
 
-
 def open_database():
     try:
         connection_string = get_connection_string()
@@ -38,7 +33,6 @@ def open_database():
         raise exception
     return connection
 
-
 def connection_handler(function):
     def wrapper(*args, **kwargs):
         connection = open_database()
@@ -48,18 +42,4 @@ def connection_handler(function):
         dict_cur.close()
         connection.close()
         return ret_value
-
     return wrapper
-
-
-# def read_dict_from_file(file_name):
-#     with open(file_name) as file:
-#         lines = csv.DictReader(file)
-#         return list(lines)
-#
-#
-# def write_dict_to_file_str(file_name, data, headers):
-#     with open(file_name, 'w', newline='') as file:
-#         writer = csv.DictWriter(file, fieldnames=headers)
-#         writer.writeheader()
-#         writer.writerows(data)
