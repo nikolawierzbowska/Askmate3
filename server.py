@@ -43,24 +43,24 @@ def add_question():
         image_path = None
         if 'image' in flask.request.files and image_file.filename != '':
             image_path = data_manager.save_image_dm(image_file)
-        new_question_id = data_manager.add_question_dm({'title': title, 'message': message, 'image': image_path})
+        data_manager.add_question_dm({'title': title, 'message': message, 'image': image_path})
         return flask.redirect(f'/question/{data_manager.get_newest_question_dm()}')
     else:
         return flask.render_template('add_question.html')
-#
-#
-# @app.route('/question/<question_id>/new_answer', methods=['GET', 'POST'])
-# def add_answer(question_id):
-#     if flask.request.method == 'POST':
-#         message = flask.request.form['message']
-#         image_file = flask.request.files['image']
-#         image_path = None
-#         if 'image' in flask.request.files and image_file.filename != '':
-#             image_path = data_manager.save_image_dm(image_file)
-#         data_manager.add_answer_dm(message, question_id, image_path)
-#         return flask.redirect(f'/question/{question_id}')
-#     elif flask.request.method == 'GET':
-#         return flask.render_template('add_answer.html', question_id=question_id)
+
+
+@app.route('/question/<question_id>/new_answer', methods=['GET', 'POST'])
+def add_answer(question_id):
+    if flask.request.method == 'POST':
+        message = flask.request.form['message']
+        image_file = flask.request.files['image']
+        image_path = None
+        if 'image' in flask.request.files and image_file.filename != '':
+            image_path = data_manager.save_image_dm(image_file)
+        data_manager.add_answer_dm({'message': message, 'question_id': question_id, 'image': image_path})
+        return flask.redirect(f'/question/{question_id}')
+    elif flask.request.method == 'GET':
+        return flask.render_template('add_answer.html', question_id=question_id)
 #
 #
 # # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])

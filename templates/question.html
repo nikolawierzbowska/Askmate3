@@ -124,7 +124,7 @@
             </a>
         </p>
         <p>
-            <a href="/question/{{question_id}}/new_answer">
+            <a href="/question/{{ question['id'] }}/new_answer">
                 <button>Add new answer</button>
             </a>
         </p>
@@ -175,7 +175,7 @@
             <td>
                 <div class="remove_img">
                     {% if answer['image'] %}
-                        <img src="../{{ answer_image }}" alt="Answer Image" style="max-width: 150px;">
+                        <img src="../{{ answer['image'] }}" alt="Answer Image" style="max-width: 150px;">
                             <div class="del_img small-icon">
                                 <button type="button" id="remove_image" name="">&#10060;</button>
                             </div>

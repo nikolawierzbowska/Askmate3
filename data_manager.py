@@ -94,8 +94,21 @@ def get_newest_question_dm(cursor):
 #     questions.append(new_question)
 #     connection.write_dict_to_file_str(questions_csv, questions, HEADERS_Q)
 #     return question_id
-#
-#
+
+
+@connection.connection_handler
+def add_answer_dm(cursor, data_a):
+    cursor.execute("""
+                    INSERT INTO answer(submission_time, vote_number, question_id, message, image)
+                    VALUES (%(submission_time)s, %(vote_number)s, %(question_id)s, %(message)s, %(image)s);
+                    """,
+                   {'submission_time': util.get_time(),
+                    'vote_number': 0,
+                    'question_id': data_a['question_id'],
+                    'message': data_a['message'],
+                    'image': data_a['image']})
+
+
 # def add_answer_dm(message, question_id, image_path=None):
 #     answers = connection.read_dict_from_file(answers_csv)
 #     new_answer_id = str(util.generated_id(answers_csv))
