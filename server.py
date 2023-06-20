@@ -14,7 +14,7 @@ def main_page():
 @app.route('/list')
 def list_questions():
     order_by = flask.request.args.get('order_by')
-    order = flask.request.args.get('order')
+    order = flask.request.args.get('order_direction')
     if order is not None and order_by is not None:
         questions = data_manager.get_sorted_questions(order_by, order)
         return flask.render_template("list.html", questions=questions)

@@ -42,10 +42,8 @@ def open_database():
 def connection_handler(function):
     def wrapper(*args, **kwargs):
         connection = open_database()
-        # we set the cursor_factory parameter to return with a RealDictCursor cursor (cursor which provide dictionaries)
-        dict_cur = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        ret_value = function(dict_cur, *args, **kwargs)
-        dict_cur.close()
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as dict_cur:
+            ret_value = function(dict_cur, *args, **kwargs)
         connection.close()
         return ret_value
 

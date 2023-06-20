@@ -2,43 +2,36 @@ import connection
 import util
 
 
-@connection.connection_handler
-def get_sorted_questions(cursor, order_by, order):
-    cursor.execute(f"""
-                 SELECT *
-                 FROM question
-                 ORDER BY {order_by} {order}""")
+@connection.connection_handler  #nie jest to dokładna wersja z zajęć, jak próbowałam to przerobić z f stringa to cos sie posypało, i zrobiłam na siłe, nie wiem czy tak może być???
+def get_sorted_questions(cursor, order_by, order_direction):
+    query = """
+        SELECT *,
+        (SELECT COUNT(id) FROM answer a WHERE q.id = a.question_id) AS number_of_answers
+        FROM question q
+        ORDER BY {} {};
+    """.format(order_by, order_direction)
+    cursor.execute(query)
     return cursor.fetchall()
-#TODO sortowanie po odpowiedziach(?)
-
-# @connection.connection_handler
-# def get_number_of_answers(cursor):
-#     cursor.execute("""
-#         SELECT id, SUM(id) as number_of_answers
-#         FROM question
-#         INNER JOIN answer
-#         ON question.id = answer.question_id
-#         GROUP BY question_id""")
-#     return number_of_answers
 
 
-# TODO f string uwaga - sprawdź
 @connection.connection_handler
 def get_question_data_by_id_dm(cursor, question_id):
-    cursor.execute(f"""
+    cursor.execute("""
         SELECT *
         FROM question
-        WHERE id = {question_id};""")
+        WHERE id = %s;""",
+             (question_id))
     return cursor.fetchone()
 
 
 @connection.connection_handler
 def get_answers_by_question_id_dm(cursor, question_id):
-    cursor.execute(f"""
+    cursor.execute("""
         SELECT *
         FROM answer
-        WHERE question_id = {question_id}
-        ORDER BY submission_time DESC;""")
+        WHERE question_id = %s
+        ORDER BY submission_time DESC;""",
+                   (question_id))
     return cursor.fetchall()
 
 
@@ -46,9 +39,14 @@ def get_answers_by_question_id_dm(cursor, question_id):
 def add_question_dm(cursor, submission_time, title, message, image_path):
     cursor.execute("""
         INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
-        VALUES ( %s, 0, 0, %s, %s, %s)
+        VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
         RETURNING id;""",
-                   (submission_time, title, message, image_path))
+                   {'submission_time': submission_time,
+                    'vote_number': 0,
+                    'view_number': 0,
+                    'title' : title,
+                    'message': message,
+                    'image': image_path})
     new_question_id = cursor.fetchone()['id']
     return new_question_id
 
@@ -56,9 +54,14 @@ def add_question_dm(cursor, submission_time, title, message, image_path):
 @connection.connection_handler
 def add_answer_dm(cursor, submission_time, message, question_id, image_path):
     cursor.execute("""
-        INSERT INTO answer(submission_time, vote_number, question_id, message, image)
-        VALUES (%s, 0, %s, %s, %s);""",
-                   (submission_time, question_id, message, image_path))
+        INSERT INTO answer(submission_time, vote_number, message, question_id, image)
+        VALUES (%(submission_time)s, %(vote_number)s, %(message)s, %(question_id)s %(image)s);
+        """,
+       {'submission_time': submission_time,
+        'vote_number': 0,
+        'message': message,
+        'question_id': question_id,
+        'image': image_path})
 
 
 # @connection.connection_handler
@@ -145,10 +148,11 @@ def delete_answer_by_question_id(cursor, question_id):
 
 @connection.connection_handler
 def get_question_id_by_answer(answer_id):
-    cursor.execute(f"""
+    cursor.execute("""
         SELECT question_id 
         FROM answer
-        WHERE id = {answer_id};""")
+        WHERE id = %(answer_id)s;""",
+                   (answer_id))
     return cursor.fetchone()["question_id"]
 
 
@@ -180,8 +184,9 @@ def get_question_id_by_answer(answer_id):
 
 @connection.connection_handler
 def view_question_dm(cursor, question_id):
-    cursor.execute(f"""
+    cursor.execute("""
         UPDATE question 
         SET view_number = view_number + 1
-        WHERE id = {question_id};""")
+        WHERE id = %(question_id)s;""",
+                   (question_id))
 
