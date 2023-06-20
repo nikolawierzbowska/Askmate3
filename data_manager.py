@@ -1,4 +1,3 @@
-
 import connection
 import util
 
@@ -10,11 +9,20 @@ def get_sorted_questions(cursor, order_by, order):
                  FROM question
                  ORDER BY {order_by} {order}""")
     return cursor.fetchall()
+#TODO sortowanie po odpowiedziach(?)
+
+# @connection.connection_handler
+# def get_number_of_answers(cursor):
+#     cursor.execute("""
+#         SELECT id, SUM(id) as number_of_answers
+#         FROM question
+#         INNER JOIN answer
+#         ON question.id = answer.question_id
+#         GROUP BY question_id""")
+#     return number_of_answers
 
 
-# TODO no. of answers
-
-
+# TODO f string uwaga - sprawdź
 @connection.connection_handler
 def get_question_data_by_id_dm(cursor, question_id):
     cursor.execute(f"""
@@ -34,7 +42,6 @@ def get_answers_by_question_id_dm(cursor, question_id):
     return cursor.fetchall()
 
 
-# TODO czy baza danych generuje sama id??
 @connection.connection_handler
 def add_question_dm(cursor, submission_time, title, message, image_path):
     cursor.execute("""
@@ -54,29 +61,54 @@ def add_answer_dm(cursor, submission_time, message, question_id, image_path):
                    (submission_time, question_id, message, image_path))
 
 
-# def add_answer_dm(message, question_id, image_path=None):
-#     answers = connection.read_dict_from_file(answers_csv)
-#     new_answer_id = str(util.generated_id(answers_csv))
-#     new_answer = {
-#         'id': new_answer_id,
-#         "submission_time": util.get_time(),
-#         "vote_number": 0,
-#         "question_id": question_id,
-#         'message': message,
-#         "image": image_path
-#     }
-#     answers.append(new_answer)
-#     connection.write_dict_to_file_str(answers_csv, answers, HEADERS_A)
+# @connection.connection_handler
+# def delete_question(cursor, question_id):
+#     # usuwa obrazek do Q
+#     delete_question_image_file(question_id)
+#     # pobiera A do Q i usuwa zdjęcia
+#     answers = get_answers_by_question_id_dm(question_id)
+#     for
+#     cursor.execute(f"""
+#             DELETE FROM question
+#             WHERE question_id = {question_id};""")
 
-#
-# def delete_answer_by_id(answer_id):
-#     delete_answer_dm(answer_id, 'id')
-#
-#
-# def delete_answer_by_question_id(question_id):
-#     delete_answer_dm(question_id, 'question_id')
-#
-#
+
+def delete_question_image_file(cursor, question_id):
+    cursor.execute(f"""
+        SELECT image
+        FROM question
+        WHERE id = {question_id};""")
+    result = cursor.fetchone()
+    if result is not None:
+        image_path = result['image']
+        util.delete_image_file(image_path)
+
+
+@connection.connection_handler
+def delete_answer(cursor, answer_id):
+    cursor.execute(f"""
+        SELECT image 
+        FROM answer
+        WHERE id = {answer_id};""")
+    image_paths = cursor.fetchall()
+    for image_path in image_paths:
+        util.delete_image_file(image_path)
+
+
+@connection.connection_handler
+def delete_answer_from_data_base(cursor, answer_id):
+    cursor.execute(f"""
+        DELETE FROM answer
+        WHERE id = {answer_id};""")
+
+
+@connection.connection_handler
+def delete_answer_by_question_id(cursor, question_id):
+    cursor.execute(f"""
+        DELETE FROM answer
+        WHERE question_id = {question_id};""")
+
+
 # def delete_answer_dm(data_id, header):
 #     answers = connection.read_dict_from_file(answers_csv)
 #     for answer in answers:
@@ -110,15 +142,16 @@ def add_answer_dm(cursor, submission_time, message, question_id, image_path):
 #                 util.delete_image_file(file_path)
 #             questions.remove(question)
 #     connection.write_dict_to_file_str(questions_csv, questions, HEADERS_Q)
-#
-#
-# def get_question_id(answer_id):
-#     answers = connection.read_dict_from_file(answers_csv)
-#     for answer in answers:
-#         if answer['id'] == answer_id:
-#             return answer['question_id']
-#
-#
+
+@connection.connection_handler
+def get_question_id_by_answer(answer_id):
+    cursor.execute(f"""
+        SELECT question_id 
+        FROM answer
+        WHERE id = {answer_id};""")
+    return cursor.fetchone()["question_id"]
+
+
 # # TODO solution in connection, without changing time. additionally: add date of edition
 # def update_question_dm(title, message, image_path, question_id, delete_image_file):
 #     delete_question_dm(question_id, delete_image_file)
@@ -151,7 +184,4 @@ def view_question_dm(cursor, question_id):
         UPDATE question 
         SET view_number = view_number + 1
         WHERE id = {question_id};""")
-    return question_id
-
-
 

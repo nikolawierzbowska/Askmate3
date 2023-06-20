@@ -119,7 +119,7 @@
     </table>
     <div class="buttons">
         <p>
-            <a href="/list">
+            <a href="/list?order_by=submission_time&order=DESC">
                 <button>List of questions</button>
             </a>
         </p>
@@ -141,6 +141,49 @@
         </p>
     </div>
 
-
+   <table>
+        <tr>
+            <th>Date</th>
+            <th>Votes</th>
+            <th>Answers</th>
+            <th>Image</th>
+        </tr>
+        {% for answer in answers %}
+        <tr>
+            <td>{{ answer['submission_time'] }}</td>
+            <td>
+                <div class="votes">
+                    {{ answer['vote_number'] }}
+                    <div class="thumb">
+                        <a href="/answer/{{answer_id}}/vote_up">&#128077;</a>
+                        <a href="/answer/{{answer_id}}/vote_down">&#128078;</a>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="cell-content cell-text">{{ answer['message'] }}
+                    <span class="edit-delete-buttons small-icon">
+                        <a href="/answer/{{ answer_id }}/delete">
+                            <button type="button" id="remove_image" name="">&#10060;</button>
+                        </a>
+                        <a href='/answer/{{answer_id}}/edit'>
+                            <button type="button" id="edit_answer" name="">&#9998;</button>
+                        </a>
+                    </span>
+                </div>
+            </td>
+            <td>
+                <div class="remove_img">
+                    {% if answer['image'] %}
+                        <img src="../{{ answer['image'] }}" alt="Answer Image" style="max-width: 150px;">
+                            <div class="del_img small-icon">
+                                <button type="button" id="remove_image" name="">&#10060;</button>
+                            </div>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>

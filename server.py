@@ -8,16 +8,19 @@ app = Flask(__name__)
 
 @app.route('/')
 def main_page():
-    questions = data_manager.get_sorted_questions("submission_time", "DESC")
-    return flask.render_template("list.html", questions=questions)
+    return flask.redirect('/list')
 
 
 @app.route('/list')
 def list_questions():
     order_by = flask.request.args.get('order_by')
     order = flask.request.args.get('order')
-    questions = data_manager.get_sorted_questions(order_by, order)
-    return flask.render_template("list.html", questions=questions)
+    if order is not None and order_by is not None:
+        questions = data_manager.get_sorted_questions(order_by, order)
+        return flask.render_template("list.html", questions=questions)
+    else:
+        questions = data_manager.get_sorted_questions("submission_time", "DESC")
+        return flask.render_template("list.html", questions=questions)
 
 
 @app.route('/question/<int:question_id>')
@@ -29,6 +32,7 @@ def print_question(question_id):
 # TODO: html answers --> dicts not list anymore
 
 
+# TODO data juz zapisanych
 @app.route('/add_question', methods=['GET', 'POST'])
 def add_question():
     if flask.request.method == 'POST':
@@ -59,38 +63,38 @@ def add_answer(question_id):
     elif flask.request.method == 'GET':
         return flask.render_template('add_answer.html', question_id=question_id)
 
-#
-# # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
-# # def edit_answer(answer_id):
-# #     answer = data_manager.get_answer_data_by_id_dm(answer_id)
-# #     if flask.request.method == 'GET':
-# #         return flask.render_template('edit_answer.html', message=answer[MESSAGE - 1],
-# #                                      question_id=answer[ID + 3], answer_id=answer[ID])
-# #     elif flask.request.method == 'POST':
-# #         message = flask.request.form['message']
-# #         image_file = flask.request.files['image']
-# #         if 'image' in flask.request.files and image_file.filename != '':
-# #             unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
-# #             image_path = 'static/uploads/' + unique_filename
-# #             image_file.save(image_path)
-# #         else:
-# #             image_path = answer[IMAGE - 1]
-# #             data_manager.update_answer_dm(answer[ID], message, image_path, answer[ID + 3])
-# #         return flask.redirect(f'/question/{answer[ID + 3]}')
-#
-#
-# @app.route('/question/<question_id>/delete')
-# def delete_question(question_id):
-#     data_manager.delete_question_dm(question_id)
-#     data_manager.delete_answer_by_question_id(question_id)
-#     return flask.redirect('/list')
-#
-#
-# @app.route('/answer/<answer_id>/delete')
-# def delete_answer(answer_id):
-#     question_id = data_manager.get_question_id(answer_id)
-#     data_manager.delete_answer_by_id(answer_id)
-#     return flask.redirect(f'/question/{question_id}')
+
+# @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
+# def edit_answer(answer_id):
+#     answer = data_manager.get_answer_data_by_id_dm(answer_id)
+#     if flask.request.method == 'GET':
+#         return flask.render_template('edit_answer.html', message=answer[MESSAGE - 1],
+#                                      question_id=answer[ID + 3], answer_id=answer[ID])
+#     elif flask.request.method == 'POST':
+#         message = flask.request.form['message']
+#         image_file = flask.request.files['image']
+#         if 'image' in flask.request.files and image_file.filename != '':
+#             unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
+#             image_path = 'static/uploads/' + unique_filename
+#             image_file.save(image_path)
+#         else:
+#             image_path = answer[IMAGE - 1]
+#             data_manager.update_answer_dm(answer[ID], message, image_path, answer[ID + 3])
+#         return flask.redirect(f'/question/{answer[ID + 3]}')
+
+
+@app.route('/question/<question_id>/delete')
+def delete_question(question_id):
+    data_manager.delete_question(question_id)
+    data_manager.delete_answer_by_question_id(question_id)
+    return flask.redirect('/list')
+
+
+@app.route('/answer/<answer_id>/delete')
+def delete_answer(answer_id):
+    question_id = data_manager.get_question_id_by_answer(answer_id)
+    data_manager.delete_answer_by_id(answer_id)
+    return flask.redirect(f'/question/{question_id}')
 #
 #
 # @app.route('/question/<question_id>/edit', methods=['GET', 'POST'])
