@@ -83,10 +83,9 @@ def add_answer(question_id):
 #         return flask.redirect(f'/question/{answer[ID + 3]}')
 
 
-@app.route('/question/<question_id>/delete')
+@app.route('/question/<int:question_id>/delete')
 def delete_question(question_id):
-    data_manager.delete_question(question_id)
-    data_manager.delete_answer_by_question_id(question_id)
+    data_manager.delete_question_dm(question_id)
     return flask.redirect('/list')
 
 
