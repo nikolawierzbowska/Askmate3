@@ -1,177 +1,194 @@
-import os
-import uuid
-
 import connection
 import util
 
-questions_csv = "data/question.csv"
-answers_csv = "data/answer.csv"
 
-HEADERS_Q = ["id", "submission_time", "view_number", "vote_number", "title", "message", "image"]
-HEADERS_A = ["id", "submission_time", "vote_number", "question_id", "message", "image"]
-
-
-def get_question_data_by_id_dm(question_id):
-    data_questions = connection.read_dict_from_file(questions_csv)
-    return next(data for data in data_questions if data['id'] == question_id)
-
-
-def get_answers_by_question_id_dm(question_id):
-    data_answers = connection.read_dict_from_file(answers_csv)
-    for answer in data_answers:
-        answer["submission_time"] = util.convert_timestamp_to_date(int(answer["submission_time"]))
-    sorted_answers = sorted(data_answers, key=lambda x: x["submission_time"], reverse=True)
-    return [line for line in sorted_answers if line['question_id'] == question_id]
+@connection.connection_handler
+def get_question_data_by_id_dm(cursor, question_id):
+    cursor.execute("""
+                    SELECT *
+                    FROM question
+                    WHERE id = %(question_id)s;
+                    """, {'question_id': question_id})
+    return cursor.fetchone()
 
 
-def add_question_dm(title, message, image_path=None, question_id=None):
-    questions = connection.read_dict_from_file(questions_csv)
-    question_id = str(util.generated_id(questions_csv)) if question_id is None else question_id
-    new_question = {
-        'id': question_id,
-        "submission_time": util.get_time(),
-        "view_number": 0,
-        "vote_number": 0,
-        'title': title,
-        'message': message,
-        "image": image_path
+@connection.connection_handler
+def get_answers_by_question_id_dm(cursor, question_id):
+    cursor.execute("""
+                    SELECT *
+                    FROM answer
+                    WHERE question_id = %(question_id)s
+                    ORDER BY submission_time DESC;
+                    """, {'question_id': question_id})
+    return cursor.fetchall()
 
-    }
-    questions.append(new_question)
-    connection.write_dict_to_file_str(questions_csv, questions, HEADERS_Q)
+
+@connection.connection_handler
+def add_question_dm(cursor, data_q):
+    cursor.execute("""
+                    INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
+                    VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
+                    RETURNING id;
+                    """,
+                   {'submission_time': util.get_time(),
+                    'view_number': 0,
+                    'vote_number': 0,
+                    'title': data_q['title'],
+                    'message': data_q['message'],
+                    'image': data_q['image']})
+    new_question_id = cursor.fetchone()['id']
+    return new_question_id
+
+
+@connection.connection_handler
+def add_answer_dm(cursor, data_a):
+    cursor.execute("""
+                    INSERT INTO answer(submission_time, vote_number, question_id, message, image)
+                    VALUES (%(submission_time)s, %(vote_number)s, %(question_id)s, %(message)s, %(image)s);
+                    """,
+                   {'submission_time': util.get_time(),
+                    'vote_number': 0,
+                    'question_id': data_a['question_id'],
+                    'message': data_a['message'],
+                    'image': data_a['image']})
+
+
+# TODO f stringi na słowniki!
+@connection.connection_handler
+def get_sorted_questions(cursor, order_by, order):
+    cursor.execute("""
+                    SELECT *, (SELECT count(id) FROM answer a WHERE q.id = a.question_id)
+                    AS number_of_answers
+                    FROM question q
+                    ORDER BY {} {} """.format(order_by, order))
+    return cursor.fetchall()
+
+
+@connection.connection_handler
+def view_question_dm(cursor, question_id):
+    cursor.execute("""
+                    UPDATE question 
+                    SET view_number = view_number + 1
+                    WHERE id = {};""".format(question_id))
+
+
+@connection.connection_handler
+def delete_answer_by_id(cursor, answer_id):
+    cursor.execute("""
+                    DELETE FROM comment
+                    WHERE answer_id = %(answer_id)s;
+            
+                    DELETE FROM answer
+                    WHERE id = %(answer_id)s
+                    RETURNING image, question_id;
+                    """,
+                   {'answer_id': answer_id})
+    data = cursor.fetchone()
+    image_path = data['image']
+    question_id = data['question_id']
+    util.delete_image_files([image_path])
     return question_id
 
 
-def add_answer_dm(message, question_id, image_path=None):
-    answers = connection.read_dict_from_file(answers_csv)
-    new_answer_id = str(util.generated_id(answers_csv))
-    new_answer = {
-        'id': new_answer_id,
-        "submission_time": util.get_time(),
-        "vote_number": 0,
-        "question_id": question_id,
-        'message': message,
-        "image": image_path
-    }
-    answers.append(new_answer)
-    connection.write_dict_to_file_str(answers_csv, answers, HEADERS_A)
+@connection.connection_handler
+def delete_question_dm(cursor, question_id):
+    image_paths = get_image_paths(question_id)
+    cursor.execute("""
+                    DELETE FROM comment
+                    WHERE answer_id IN
+                    (SELECT answer_id
+                    FROM answer
+                    WHERE question_id = %(question_id)s);
+            
+                    DELETE FROM answer
+                    WHERE question_id = %(question_id)s;
+            
+                    DELETE FROM comment
+                    WHERE question_id = %(question_id)s;
+            
+                    DELETE FROM question_tag
+                    WHERE question_id = %(question_id)s;
+            
+                    DELETE FROM question
+                    WHERE id = %(question_id)s;
+                    """,
+                   {'question_id': question_id})
+    util.delete_image_files(image_paths)
 
 
-# TODO solution with filter + len (i have no idea..?)
-def get_sorted_questions(order_by, order_direction):
-    questions = connection.read_dict_from_file(questions_csv)
-    answers = connection.read_dict_from_file(answers_csv)
-    for question in questions:
-        question["submission_time"] = util.convert_timestamp_to_date(int(question["submission_time"]))
-        question['answers'] = 0
-        for answer in answers:
-            if question['id'] == answer['question_id']:
-                question['answers'] += 1
-    if order_by == 'title':
-        questions.sort(key=lambda q: q['title'].lower(), reverse=(order_direction == 'desc'))
-    elif order_by == 'submission_time':
-        questions.sort(key=lambda q: q['submission_time'], reverse=(order_direction == 'desc'))
-    elif order_by == 'message':
-        questions.sort(key=lambda q: q['message'].lower(), reverse=(order_direction == 'desc'))
-    elif order_by == 'view_number':
-        questions.sort(key=lambda q: int(q['view_number']), reverse=(order_direction == 'desc'))
-    elif order_by == 'vote_number':
-        questions.sort(key=lambda q: int(q['vote_number']), reverse=(order_direction == 'desc'))
-    elif order_by == 'answers':
-        questions.sort(key=lambda q: int(q['answers']), reverse=(order_direction == 'desc'))
-    return questions
+@connection.connection_handler
+def get_image_paths(cursor, question_id):
+    cursor.execute("""
+                    SELECT image
+                    FROM question
+                    WHERE id = %(question_id)s
+                    UNION ALL
+                    SELECT image
+                    FROM answer
+                    WHERE question_id = %(question_id)s
+                    """,
+                   {'question_id': question_id})
+    images = cursor.fetchall()
+    image_paths = [image['image'] for image in images]
+    return image_paths
 
-
-def delete_answer_by_id(answer_id):
-    delete_answer_dm(answer_id, 'id')
-
-
-def delete_answer_by_question_id(question_id):
-    delete_answer_dm(question_id, 'question_id')
-
-
-def delete_answer_dm(data_id, header):
-    answers = connection.read_dict_from_file(answers_csv)
-    for answer in answers:
-        file_path = answer['image']
-        if answer.get(header) == data_id:
-            util.delete_image_file(file_path)
-            answers.remove(answer)
-    connection.write_dict_to_file_str(answers_csv, answers, HEADERS_A)
-
-
-def delete_image(question_id):
-    questions = connection.read_dict_from_file(questions_csv)
-    for question in questions:
-        if question.get('id') == question_id:
-            file_path = question['image']
-            saved_data = question
-            saved_data['image'] = None
-            util.delete_image_file(file_path)
-            questions.remove(question)
-            questions.append(saved_data)
-            break
-    connection.write_dict_to_file_str(questions_csv, questions, HEADERS_Q)
-
-
-def delete_question_dm(question_id, delete_image_file=None):
-    questions = connection.read_dict_from_file(questions_csv)
-    for question in questions:
-        if question.get('id') == question_id:
-            file_path = question['image']
-            if delete_image_file:
-                util.delete_image_file(file_path)
-            questions.remove(question)
-    connection.write_dict_to_file_str(questions_csv, questions, HEADERS_Q)
-
-
-def get_question_id(answer_id):
-    answers = connection.read_dict_from_file(answers_csv)
-    for answer in answers:
-        if answer['id'] == answer_id:
-            return answer['question_id']
 
 
 # TODO solution in connection, without changing time. additionally: add date of edition
-def update_question_dm(title, message, image_path, question_id, delete_image_file):
-    delete_question_dm(question_id, delete_image_file)
-    add_question_dm(title, message, image_path, question_id)
+@connection.connection_handler
+def update_question_dm(cursor, title, message, old_image_path, new_image_file, question_id, remove_image):
+    new_image_path = None
+    if remove_image:  # TODO why doesn't it work with if/elif/else condition
+        util.delete_image_files([old_image_path])
+    if new_image_file.filename != '':
+        new_image_path = util.save_image_dm(new_image_file)
+    if remove_image and new_image_file.filename == '':
+        new_image_path = old_image_path
+    cursor.execute("""
+                    UPDATE question 
+                    SET 
+                        title = %(title)s, 
+                        message = %(message)s, 
+                        image = %(image)s
+                    WHERE id = %(question_id)s;
+                    """,
+                   {'title': title,
+                    'message': message,
+                    'image': new_image_path,
+                    'question_id': question_id})
 
 
-def vote_on_question_dm(question_id, vote):
-    vote_on_dm(question_id, questions_csv, vote, HEADERS_Q)
+@connection.connection_handler
+def vote_on_question_dm(cursor, question_id, vote_direction):
+    cursor.execute("""
+                    UPDATE question 
+                    SET vote_number = CASE
+                        WHEN %(vote_direction)s = 'up' THEN vote_number + 1
+                        WHEN %(vote_direction)s = 'down' THEN vote_number - 1
+                        ELSE vote_number
+                    END
+                    WHERE id = %(question_id)s;
+                    """,
+                   {'question_id': question_id,
+                    'vote_direction': vote_direction})
 
 
-def vote_on_answer_dm(answer_id, vote):
-    vote_on_dm(answer_id, answers_csv, vote, HEADERS_A)
+@connection.connection_handler
+def vote_on_answer_dm(cursor, answer_id, vote_direction):
+    cursor.execute("""
+                    UPDATE answer 
+                    SET vote_number = CASE
+                        WHEN %(vote_direction)s = 'up' THEN vote_number + 1
+                        WHEN %(vote_direction)s = 'down' THEN vote_number - 1
+                        ELSE vote_number
+                    END
+                    WHERE id = %(answer_id)s
+                    RETURNING question_id;
+                    """,
+                   {'answer_id': answer_id, 'vote_direction': vote_direction})
+    question_id = cursor.fetchone()['question_id']
+    return question_id
 
 
-def vote_on_dm(data_id, file_csv, vote, headers):
-    data_list = connection.read_dict_from_file(file_csv)
-    for data in data_list:
-        if data['id'] == data_id:
-            number_of_votes = int(data["vote_number"])
-            if vote == "up":
-                number_of_votes += 1
-            elif vote == "down":
-                number_of_votes -= 1
-            data["vote_number"] = number_of_votes
-    connection.write_dict_to_file_str(file_csv, data_list, headers)
 
 
-def view_question_dm(question_id):
-    questions = connection.read_dict_from_file(questions_csv)
-    for question in questions:
-        if question['id'] == question_id:
-            number_of_views = int(question["view_number"])
-            number_of_views += 1
-            question["view_number"] = number_of_views
-
-    connection.write_dict_to_file_str(questions_csv, questions, HEADERS_Q)
-
-
-def save_image_dm(image_file):
-    unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
-    image_path = 'static/uploads/' + unique_filename
-    image_file.save(image_path)
-    return image_path
