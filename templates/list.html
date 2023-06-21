@@ -106,8 +106,8 @@
                     <div class="header-cell">
                         Answers
                         <div class="sort-arrow">
-                            <a href="/list?order_by=answers&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=answers&order_direction=desc">&#128317;</a>
+                            <a href="/list?order_by=number_of_answers&order_direction=asc">&#128316;</a>
+                            <a href="/list?order_by=number_of_answers&order_direction=desc">&#128317;</a>
                         </div>
                     </div>
                 </th>
@@ -147,7 +147,7 @@
                         </div>
                     </div>
                 </td>
-                <td>{{ question['answers'] }}</td>
+                <td>{{ question['number_of_answers'] }}</td>
                 <td><a href="/question/{{ question['id'] }}">{{ question['title'] }}</a></td>
                 <td>{{ question['message'] }}</td>
                 <td>
