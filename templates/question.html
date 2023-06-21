@@ -97,8 +97,8 @@
                 <div class="votes">
                     {{ question['title'] }}
                     <div class="thumb">
-                        <a href="/question/{{question_id}}/vote_up?source=question">&#128077;</a>
-                        <a href="/question/{{question_id}}/vote_down?source=question">&#128078;</a>
+                        <a href="/question/{{question.id}}/vote_up?source=question">&#128077;</a>
+                        <a href="/question/{{question.id}}/vote_down?source=question">&#128078;</a>
                     </div>
                 </div>
             </td>
@@ -119,7 +119,7 @@
     </table>
     <div class="buttons">
         <p>
-            <a href="/list">
+            <a href="/list?order_by=submission_time&order_direction=desc">
                 <button>List of questions</button>
             </a>
         </p>
@@ -129,13 +129,13 @@
             </a>
         </p>
         <p>
-            <a href='/question/{{question_id}}/delete'>
+            <a href='/question/{{question['id']}}/delete'>
                 <button>Delete question</button>
             </a>
 
         </p>
         <p>
-            <a href='/question/{{question_id}}/edit'>
+            <a href='/question/{{question['id']}}/edit'>
                 <button>Edit question</button>
             </a>
         </p>
@@ -155,18 +155,18 @@
                 <div class="votes">
                     {{ answer['vote_number'] }}
                     <div class="thumb">
-                        <a href="/answer/{{answer_id}}/vote_up">&#128077;</a>
-                        <a href="/answer/{{answer_id}}/vote_down">&#128078;</a>
+                        <a href="/answer/{{answer.id}}/vote_up">&#128077;</a>
+                        <a href="/answer/{{answer.id}}/vote_down">&#128078;</a>
                     </div>
                 </div>
             </td>
             <td>
                 <div class="cell-content cell-text">{{ answer['message'] }}
                     <span class="edit-delete-buttons small-icon">
-                        <a href="/answer/{{ answer_id }}/delete">
+                        <a href="/answer/{{ answer.id }}/delete">
                             <button type="button" id="remove_image" name="">&#10060;</button>
                         </a>
-                        <a href='/answer/{{answer_id}}/edit'>
+                        <a href='/answer/{{answer.id}}/edit'>
                             <button type="button" id="edit_answer" name="">&#9998;</button>
                         </a>
                     </span>
