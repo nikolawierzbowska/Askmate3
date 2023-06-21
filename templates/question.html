@@ -170,7 +170,21 @@
                             <button type="button" id="edit_answer" name="">&#9998;</button>
                         </a>
                     </span>
+                    <a href="/answer/{{ answer.id }}/new_comment">
+                        <button>Add comment</button>
+                    </a>
                 </div>
+                    <div>
+                    <h5>Comments</h5>
+                            {% for comment in comments_to_answers %}
+                                {% if comment.id == answer.id %}
+                                    {{ comment.message }}
+                                    {{ comment.submission_time }}
+                                    {{ comment.edited_count }}
+                                {% endif %}
+                            {% endfor %}
+                    </div>
+
             </td>
             <td>
                 <div class="remove_img">

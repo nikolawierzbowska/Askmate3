@@ -45,6 +45,17 @@ def get_answers_by_question_id_dm(cursor, question_id):
 
 
 @connection.connection_handler
+def get_comments_to_answers_dm(cursor, question_id):
+    cursor.execute("""
+        SELECT *
+        FROM comment c
+        JOIN answer a on c.answer_id = a.id
+        WHERE a.question_id = %(question_id)s
+        """, {'question_id': question_id})
+    return cursor.fetchall()
+
+
+@connection.connection_handler
 def add_question_dm(cursor, title, message, image_file):
     submission_time = util.get_time()
     image_path = None
@@ -151,12 +162,12 @@ def update_question_dm(cursor, title, message, old_image_path, new_image_file, q
     if remove_image and new_image_file.filename == '':
         new_image_path = old_image_path
     cursor.execute("""
-            UPDATE question 
-            SET 
-                title = %(title)s, 
-                message = %(message)s, 
-                image = %(image)s
-            WHERE id = %(question_id)s;""",
+        UPDATE question 
+        SET 
+            title = %(title)s, 
+            message = %(message)s, 
+            image = %(image)s
+        WHERE id = %(question_id)s;""",
                    {'title': title,
                     'message': message,
                     'image': new_image_path,
@@ -188,5 +199,23 @@ def vote_on_answer_dm(cursor, answer_id, vote_direction):
         WHERE id = %(answer_id)s
         RETURNING question_id;
     """, {'answer_id': answer_id, 'vote_direction': vote_direction})
+    question_id = cursor.fetchone()['question_id']
+    return question_id
+
+
+@connection.connection_handler
+def add_comment_to_answer_dm(cursor, answer_id, message):
+    submission_time = util.get_time()
+    cursor.execute("""
+        INSERT INTO comment(answer_id, message, submission_time, edited_count)
+        VALUES (%(answer_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
+        
+        SELECT question_id
+        FROM answer
+        WHERE id = %(answer_id)s;
+        """, {'answer_id': answer_id,
+              'message': message,
+              'submission_time': submission_time,
+              'edited_count': 0})
     question_id = cursor.fetchone()['question_id']
     return question_id
