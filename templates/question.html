@@ -150,23 +150,23 @@
         </tr>
         {% for answer in answers %}
         <tr>
-            <td>{{ answer['submission_time'] }}</td>
+            <td>{{ answer.submission_time }}</td>
             <td>
                 <div class="votes">
-                    {{ answer['vote_number'] }}
+                    {{ answer.vote_number }}
                     <div class="thumb">
-                        <a href="/answer/{{answer_id}}/vote_up">&#128077;</a>
-                        <a href="/answer/{{answer_id}}/vote_down">&#128078;</a>
+                        <a href="/answer/{{ answer.id }}/vote_up">&#128077;</a>
+                        <a href="/answer/{{ answer.id }}/vote_down">&#128078;</a>
                     </div>
                 </div>
             </td>
             <td>
-                <div class="cell-content cell-text">{{ answer['message'] }}
+                <div class="cell-content cell-text">{{ answer.message }}
                     <span class="edit-delete-buttons small-icon">
-                        <a href="/answer/{{ answer_id }}/delete">
+                        <a href="/answer/{{ answer.id }}/delete">
                             <button type="button" id="remove_image" name="">&#10060;</button>
                         </a>
-                        <a href='/answer/{{answer_id}}/edit'>
+                        <a href='/answer/{{answer.id}}/edit'>
                             <button type="button" id="edit_answer" name="">&#9998;</button>
                         </a>
                     </span>
@@ -174,8 +174,8 @@
             </td>
             <td>
                 <div class="remove_img">
-                    {% if answer['image'] %}
-                        <img src="../{{ answer['image'] }}" alt="Answer Image" style="max-width: 150px;">
+                    {% if answer.image %}
+                        <img src="../{{ answer.image }}" alt="Answer Image" style="max-width: 150px;">
                             <div class="del_img small-icon">
                                 <button type="button" id="remove_image" name="">&#10060;</button>
                             </div>

@@ -1,6 +1,7 @@
 import datetime
 import os
 import uuid
+from pathlib import Path
 
 
 def get_time():
@@ -14,7 +15,11 @@ def save_image_dm(image_file):
     return image_path
 
 
-# TODO update funkcji pod baza danych
 def delete_image_file(file_path):
     if os.path.exists(file_path):
         os.remove(file_path)
+
+
+def delete_image_files(image_paths):
+    [Path(image_path).unlink() for image_path in image_paths if image_path and
+     Path(image_path).is_file() and Path(image_path).exists()]
