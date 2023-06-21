@@ -1,5 +1,6 @@
---
--- PostgreSQL database dump
+
+-- PostgresSQL database dump
+
 --
 
 -- Dumped from database version 9.5.6
