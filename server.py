@@ -1,12 +1,8 @@
 import flask
 from flask import Flask
 import data_manager
-import util
 
 app = Flask(__name__)
-
-# TODO Add comment to answer
-# TODO tag question
 
 
 @app.route('/')
@@ -14,6 +10,7 @@ def main_page():
     return flask.redirect('/list')
 
 
+# TODO domyślny order by, psuje się przy wracaniu z question
 @app.route('/list')
 def list_questions():
     order_by = flask.request.args.get('order_by')
@@ -57,7 +54,8 @@ def add_answer(question_id):
         return flask.render_template('add_answer.html', question_id=question_id)
 
 
-@app.route('/question/<int:question_id>/delete')
+
+@app.route('/question/<question_id>/delete')
 def delete_question(question_id):
     data_manager.delete_question_dm(question_id)
     return flask.redirect('/list')

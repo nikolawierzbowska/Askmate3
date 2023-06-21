@@ -4,8 +4,9 @@ import uuid
 from pathlib import Path
 
 
-def get_time():
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+def convert_timestamp_to_date(timestamp):
+    date = datetime.datetime.fromtimestamp(timestamp)
+    return date.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def save_image_dm(image_file):
@@ -15,9 +16,8 @@ def save_image_dm(image_file):
     return image_path
 
 
-def delete_image_file(file_path):
-    if os.path.exists(file_path):
-        os.remove(file_path)
+def get_time():
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
 def delete_image_files(image_paths):
