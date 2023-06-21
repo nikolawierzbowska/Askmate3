@@ -24,33 +24,40 @@ def get_answers_by_question_id_dm(cursor, question_id):
 
 
 @connection.connection_handler
-def add_question_dm(cursor, data_q):
+def add_question_dm(cursor, title, message, image_file):
+    submission_time = util.get_time()
+    image_path = None
+    if image_file.filename != '':
+        image_path = util.save_image_dm(image_file)
     cursor.execute("""
-                    INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
-                    VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
-                    RETURNING id;
-                    """,
-                   {'submission_time': util.get_time(),
-                    'view_number': 0,
+        INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
+        VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
+        RETURNING id;""",
+                   {'submission_time': submission_time,
                     'vote_number': 0,
-                    'title': data_q['title'],
-                    'message': data_q['message'],
-                    'image': data_q['image']})
+                    'view_number': 0,
+                    'title': title,
+                    'message': message,
+                    'image': image_path})
     new_question_id = cursor.fetchone()['id']
     return new_question_id
 
 
 @connection.connection_handler
-def add_answer_dm(cursor, data_a):
+def add_answer_dm(cursor, message, question_id, image_file):
+    submission_time = util.get_time()
+    image_path = None
+    if image_file.filename != '':
+        image_path = util.save_image_dm(image_file)
     cursor.execute("""
-                    INSERT INTO answer(submission_time, vote_number, question_id, message, image)
-                    VALUES (%(submission_time)s, %(vote_number)s, %(question_id)s, %(message)s, %(image)s);
-                    """,
-                   {'submission_time': util.get_time(),
+        INSERT INTO answer(submission_time, vote_number, message, question_id, image)
+        VALUES (%(submission_time)s, %(vote_number)s, %(message)s, %(question_id)s, %(image)s);
+        """,
+                   {'submission_time': submission_time,
                     'vote_number': 0,
-                    'question_id': data_a['question_id'],
-                    'message': data_a['message'],
-                    'image': data_a['image']})
+                    'message': message,
+                    'question_id': question_id,
+                    'image': image_path})
 
 
 # TODO f stringi na słowniki!
@@ -133,7 +140,6 @@ def get_image_paths(cursor, question_id):
     return image_paths
 
 
-
 # TODO solution in connection, without changing time. additionally: add date of edition
 @connection.connection_handler
 def update_question_dm(cursor, title, message, old_image_path, new_image_file, question_id, remove_image):
@@ -188,7 +194,3 @@ def vote_on_answer_dm(cursor, answer_id, vote_direction):
                    {'answer_id': answer_id, 'vote_direction': vote_direction})
     question_id = cursor.fetchone()['question_id']
     return question_id
-
-
-
-

@@ -23,4 +23,3 @@ def get_time():
 def delete_image_files(image_paths):
     [Path(image_path).unlink() for image_path in image_paths if image_path and
      Path(image_path).is_file() and Path(image_path).exists()]
-
