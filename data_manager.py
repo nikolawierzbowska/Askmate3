@@ -2,7 +2,7 @@ import connection
 import util
 
 
-#TODO ask about format
+# TODO ask about format
 @connection.connection_handler
 def get_sorted_questions(cursor, order_by, order_direction):
     cursor.execute("""
@@ -27,10 +27,10 @@ def get_question_data_by_id_dm(cursor, question_id):
 @connection.connection_handler
 def view_question_dm(cursor, question_id):
     cursor.execute("""
-                    UPDATE question 
-                    SET view_number = view_number + 1
-                    WHERE id = %(question_id)s;
-                    """, {'question_id': question_id})
+        UPDATE question 
+        SET view_number = view_number + 1
+        WHERE id = %(question_id)s;
+        """, {'question_id': question_id})
 
 
 @connection.connection_handler
@@ -45,7 +45,11 @@ def get_answers_by_question_id_dm(cursor, question_id):
 
 
 @connection.connection_handler
-def add_question_dm(cursor, submission_time, title, message, image_path):
+def add_question_dm(cursor, title, message, image_file):
+    submission_time = util.get_time()
+    image_path = None
+    if image_file.filename != '':
+        image_path = util.save_image_dm(image_file)
     cursor.execute("""
         INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
         VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
@@ -61,7 +65,11 @@ def add_question_dm(cursor, submission_time, title, message, image_path):
 
 
 @connection.connection_handler
-def add_answer_dm(cursor, submission_time, message, question_id, image_path):
+def add_answer_dm(cursor, message, question_id, image_file):
+    submission_time = util.get_time()
+    image_path = None
+    if image_file.filename != '':
+        image_path = util.save_image_dm(image_file)
     cursor.execute("""
         INSERT INTO answer(submission_time, vote_number, message, question_id, image)
         VALUES (%(submission_time)s, %(vote_number)s, %(message)s, %(question_id)s, %(image)s);

@@ -5,6 +5,9 @@ import util
 
 app = Flask(__name__)
 
+# TODO Add comment to answer
+# TODO tag question
+
 
 @app.route('/')
 def main_page():
@@ -37,11 +40,7 @@ def add_question():
         title = flask.request.form['title']
         message = flask.request.form['message']
         image_file = flask.request.files['image']
-        image_path = None
-        if 'image' in flask.request.files and image_file.filename != '':
-            image_path = util.save_image_dm(image_file)
-        submission_time = util.get_time()
-        new_question_id = data_manager.add_question_dm(submission_time, title, message, image_path)
+        new_question_id = data_manager.add_question_dm(title, message, image_file)
         return flask.redirect(f'/question/{new_question_id}')
     else:
         return flask.render_template('add_question.html')
@@ -52,33 +51,10 @@ def add_answer(question_id):
     if flask.request.method == 'POST':
         message = flask.request.form['message']
         image_file = flask.request.files['image']
-        image_path = None
-        if 'image' in flask.request.files and image_file.filename != '':
-            image_path = util.save_image_dm(image_file)
-        submission_time = util.get_time()
-        data_manager.add_answer_dm(submission_time, message, question_id, image_path)
+        data_manager.add_answer_dm(message, question_id, image_file)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
         return flask.render_template('add_answer.html', question_id=question_id)
-
-
-# @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
-# def edit_answer(answer_id):
-#     answer = data_manager.get_answer_data_by_id_dm(answer_id)
-#     if flask.request.method == 'GET':
-#         return flask.render_template('edit_answer.html', message=answer[MESSAGE - 1],
-#                                      question_id=answer[ID + 3], answer_id=answer[ID])
-#     elif flask.request.method == 'POST':
-#         message = flask.request.form['message']
-#         image_file = flask.request.files['image']
-#         if 'image' in flask.request.files and image_file.filename != '':
-#             unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
-#             image_path = 'static/uploads/' + unique_filename
-#             image_file.save(image_path)
-#         else:
-#             image_path = answer[IMAGE - 1]
-#             data_manager.update_answer_dm(answer[ID], message, image_path, answer[ID + 3])
-#         return flask.redirect(f'/question/{answer[ID + 3]}')
 
 
 @app.route('/question/<int:question_id>/delete')
@@ -114,12 +90,6 @@ def edit_question(question_id):  # delete file -> util
         elif not remove_image_checkbox:
             data_manager.update_question_dm(title, message, old_image_path, new_image_file, question_id, delete_image)
         return flask.redirect(f'/question/{question_id}')
-
-
-# @app.route('/question/<question_id>/delete_image')
-# def delete_question_image(question_id):  # delete file -> util
-#     data_manager.delete_image(question_id)
-#     return flask.redirect(f'/question/{question_id}')
 
 
 @app.route('/question/<question_id>/vote_up')
