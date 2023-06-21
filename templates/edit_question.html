@@ -19,11 +19,11 @@
 <body>
     <h2>Edit Question</h2>
     <p>
-        <a href="/question/{{ question_id }}">
+        <a href="/question/{{ question.id }}">
             <button>Go back</button>
         </a>
     </p>
-    <form action="/question/{{question_id}}/edit" method="POST" enctype="multipart/form-data">
+    <form action="/question/{{question.id}}/edit" method="POST" enctype="multipart/form-data">
         <div>
             <label for="title">Title:</label>
             <input type="text" id="title" name="title" value={{question['title']}} maxlength="100" required>
@@ -41,7 +41,7 @@
         {% if question['image'] %}
         <div>
             <label>Current Image:</label>
-            <img src="../../{{ question['image'] }}" alt="Question Image">
+            <img src="../../{{ question.image }}" alt="Question Image">
             <div>
                 <input type="checkbox" id="remove_image" name="remove_image">
                 <label for="remove_image">Remove Image</label>
