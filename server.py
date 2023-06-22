@@ -1,14 +1,14 @@
 import flask
 from flask import Flask
 import data_manager
-import util
+
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def main_page():
-    return flask.redirect("/list")
+    return flask.redirect('/list')
 
 
 @app.route('/list')
@@ -27,8 +27,9 @@ def list_questions():
 def print_question(question_id):
     data_manager.view_question_dm(question_id)
     question = data_manager.get_question_data_by_id_dm(question_id)
+    comments = data_manager.get_comments_by_question_id_dm(question_id)
     answers = data_manager.get_answers_by_question_id_dm(question_id)
-    return flask.render_template('question.html', question=question, answers=answers)
+    return flask.render_template('question.html', question=question, comments=comments, answers=answers)
 
 
 @app.route('/add_question', methods=['GET', 'POST'])
@@ -37,14 +38,20 @@ def add_question():
         title = flask.request.form['title']
         message = flask.request.form['message']
         image_file = flask.request.files['image']
-        image_path = None
-        if 'image' in flask.request.files and image_file.filename != '':
-            image_path = util.save_image_dm(image_file)
-        submission_time = util.get_time()
-        new_question_id = data_manager.add_question_dm(submission_time, title, message, image_path)
+        new_question_id = data_manager.add_question_dm(title, message, image_file)
         return flask.redirect(f'/question/{new_question_id}')
     else:
         return flask.render_template('add_question.html')
+
+
+@app.route('/question/<int:question_id>/new_comment', methods=['GET', 'POST'])
+def add_comment_to_question(question_id):
+    if flask.request.method == 'POST':
+        new_comment = flask.request.form['message']
+        data_manager.add_comment_dm(question_id,new_comment)
+        return flask.redirect(f'/question/{question_id}')
+    elif flask.request.method == 'GET':
+        return flask.render_template('add_comment.html', question_id=question_id)
 
 
 @app.route('/question/<int:question_id>/new_answer', methods=['GET', 'POST'])
@@ -52,11 +59,7 @@ def add_answer(question_id):
     if flask.request.method == 'POST':
         message = flask.request.form['message']
         image_file = flask.request.files['image']
-        image_path = None
-        if 'image' in flask.request.files and image_file.filename != '':
-            image_path = util.save_image_dm(image_file)
-        submission_time = util.get_time()
-        data_manager.add_answer_dm(submission_time, message, question_id, image_path)
+        data_manager.add_answer_dm(message, question_id, image_file)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
         return flask.render_template('add_answer.html', question_id=question_id)
@@ -152,4 +155,4 @@ def vote_down_answers(answer_id):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

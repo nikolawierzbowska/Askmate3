@@ -139,7 +139,28 @@
                 <button>Edit question</button>
             </a>
         </p>
+         <p>
+            <a href='/question/{{question.id}}/new_comment'>
+                <button>Add comment to question</button>
+            </a>
+        </p>
     </div>
+
+     <table>
+        <tr>
+            <th colspan="2">Comment to question</th>
+        </tr>
+         <tr>
+             <th>Date</th>
+             <th>Message</th>
+         </tr>
+          {% for comment in comments %}
+          <tr>
+            <td>{{ comment.submission_time }}</td>
+            <td>{{ comment.message}}</td>
+          </tr>
+          {% endfor %}
+     </table>
 
     <table>
         <tr>
@@ -148,20 +169,21 @@
             <th>Answers</th>
             <th>Image</th>
         </tr>
+
         {% for answer in answers %}
         <tr>
-            <td>{{ answer['submission_time'] }}</td>
+            <td>{{ answer.submission_time }}</td>
             <td>
                 <div class="votes">
-                    {{ answer['vote_number'] }}
+                    {{ answer.vote_number }}
                     <div class="thumb">
-                        <a href="/answer/{{answer['id']}}/vote_up">&#128077;</a>
-                        <a href="/answer/{{answer['id']}}/vote_down">&#128078;</a>
+                        <a href="/answer/{{answer.id}}/vote_up">&#128077;</a>
+                        <a href="/answer/{{answer.id}}/vote_down">&#128078;</a>
                     </div>
                 </div>
             </td>
             <td>
-                <div class="cell-content cell-text">{{ answer['message'] }}
+                <div class="cell-content cell-text">{{ answer.message}}
                     <span class="edit-delete-buttons small-icon">
                         <a href="/answer/{{ answer.id }}/delete">
                             <button type="button" id="remove_image" name="">&#10060;</button>

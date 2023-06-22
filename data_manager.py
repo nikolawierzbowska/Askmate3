@@ -36,32 +36,52 @@ def get_answers_by_question_id_dm(cursor, question_id):
 
 
 @connection.connection_handler
-def add_question_dm(cursor, submission_time, title, message, image_path):
-    cursor.execute("""
-                    INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
-                    VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
-                    RETURNING id;""",
-                   {'submission_time': submission_time,
-                    'view_number': 0,
-                    'vote_number': 0,
-                    'title': title,
-                    'message': message,
-                    'image': image_path})
+def add_question_dm(cursor, title, message, image_file):
+    submission_time = util.get_time()
+    image_path = None
+    if image_file.filename != '':
+        image_path = util.save_image_dm(image_file)
+    query ="""
+            INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
+            VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
+            RETURNING id;"""
+    cursor.execute(query,{'submission_time': submission_time,'view_number': 0,'vote_number': 0,'title': title,'message': message,
+            'image': image_path})
     new_question_id = cursor.fetchone()['id']
     return new_question_id
 
+@connection.connection_handler
+def get_comments_by_question_id_dm(cursor, question_id):
+    query="""
+            SELECT *
+            FROM comment
+            WHERE question_id = %(question_id)s
+            ORDER BY submission_time DESC;
+            """
+    cursor.execute(query,{'question_id': question_id})
+    return cursor.fetchall()
 
 @connection.connection_handler
-def add_answer_dm(cursor, submission_time, message, question_id, image_path):
-    cursor.execute("""
-                 INSERT INTO answer(submission_time,vote_number,question_id,message,image)
-                 VALUES (%(submission_time)s, %(vote_number)s, %(question_id)s,%(message)s, %(image)s);
-                 """,
-                   {'submission_time': submission_time,
-                    'vote_number': 0,
-                    'question_id': question_id,
-                    'message': message,
-                    'image': image_path})
+def add_comment_dm(cursor,question_id, message):
+    submission_time = util.get_time()
+    query ="""
+            INSERT INTO comment(question_id, message,submission_time, edited_count)
+            VALUES (%(question_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
+            """
+    cursor.execute(query,{'question_id':question_id,'message': message,'submission_time': submission_time, 'edited_count':0})
+
+
+@connection.connection_handler
+def add_answer_dm(cursor, message, question_id, image_file):
+    submission_time = util.get_time()
+    image_path = None
+    if image_file.filename != '':
+        image_path = util.save_image_dm(image_file)
+    query="""
+         INSERT INTO answer(submission_time,vote_number,message,question_id,image)
+         VALUES (%(submission_time)s, %(vote_number)s,%(message)s,%(question_id)s, %(image)s);
+         """
+    cursor.execute(query,{'submission_time': submission_time,'vote_number': 0,'message': message,'question_id': question_id,'image': image_path})
 
 
 @connection.connection_handler
