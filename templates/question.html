@@ -169,14 +169,16 @@
                         <a href='/answer/{{ answer.id }}/edit'>
                             <button type="button" id="edit_answer" name="">&#9998;</button>
                         </a>
-                    </span>
+                        </span>
                     </div>
+
+
                     <table>
                         <tr>
                             <th>
                                 Comments
                                 <span>
-                                <a href="/answer/{{ answer.id }}/new_comment">
+                                    <a href="/answer/{{ answer.id }}/new_comment">
                                     <button>&#10133;</button>
                                 </a>
                                 </span>
@@ -184,21 +186,20 @@
                         </tr>
 
                         {% for comment in comments_to_answers %}
-                            {% if comment.id == answer.id %}
-                                <tr>
-                                    <div>
-                                        <td>
-                                            {{ answer.message }}<br>
-                                            <i>{{ comment.submission_time }}</i>
-                                            {% if comment.edited_count != 0 %}
-                                                Number of editions: {{ comment.edited_count }}
-                                            {% endif %}
-                                        </td>
-                                    </div>
-                                </tr>
+                            {% if comment.answer_id == answer.id %}
+                        <tr>
+                             <td>
+                                 {{ comment.message }}<br>
+                                 <i>{{ comment.submission_time }}</i>
+                                 {% if comment.edited_count != 0 %}
+                                     Number of editions: {{ comment.edited_count }}
+                                 {% endif %}
+                             </td>
+                        </tr>
                             {% endif %}
                         {% endfor %}
                     </table>
+
 
                 </td>
                 <td>
