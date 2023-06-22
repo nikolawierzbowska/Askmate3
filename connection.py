@@ -14,6 +14,7 @@ def get_connection_string():
     env_variables_defined = user_name and password and host and database_name
 
     if env_variables_defined:
+        # this string describes all info for psycopg2 to connect to the database
         return 'postgresql://{user_name}:{password}@{host}/{database_name}'.format(
             user_name=user_name,
             password=password,
@@ -42,5 +43,4 @@ def connection_handler(function):
             ret_value = function(dict_cur, *args, **kwargs)
         connection.close()
         return ret_value
-
     return wrapper

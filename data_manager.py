@@ -2,18 +2,23 @@ import connection
 import util
 
 
-# TODO ask about format
+
 @connection.connection_handler
 def get_sorted_questions(cursor, order_by, order_direction):
-    cursor.execute("""
+    order = "ASC" if order_direction.upper() == "ASC" else "DESC"
+    order_columns = ['submission_time', 'view_number', 'vote_number',
+                     'number_of_answers', 'title', 'message']
+    if order_by not in order_columns:
+        raise Exception('Wrong order by query.')
+    cursor.execute(f"""
         SELECT *,
         (SELECT COUNT(id) FROM answer a WHERE q.id = a.question_id) AS number_of_answers
         FROM question q
-        ORDER BY {} {};
-    """.format(order_by, order_direction))
+        ORDER BY {order_by} {order};
+    """)
     return cursor.fetchall()
 
-
+  
 @connection.connection_handler
 def get_question_data_by_id_dm(cursor, question_id):
     cursor.execute("""
@@ -21,7 +26,8 @@ def get_question_data_by_id_dm(cursor, question_id):
         FROM question
         WHERE id = %(question_id)s;
         """, {'question_id': question_id})
-    return cursor.fetchone()
+  return cursor.fetchone()
+
 
 
 @connection.connection_handler
@@ -33,6 +39,7 @@ def view_question_dm(cursor, question_id):
         """, {'question_id': question_id})
 
 
+    
 @connection.connection_handler
 def get_answers_by_question_id_dm(cursor, question_id):
     cursor.execute("""
@@ -40,17 +47,6 @@ def get_answers_by_question_id_dm(cursor, question_id):
         FROM answer
         WHERE question_id = %(question_id)s
         ORDER BY submission_time DESC;
-        """, {'question_id': question_id})
-    return cursor.fetchall()
-
-
-@connection.connection_handler
-def get_comments_to_answers_dm(cursor, question_id):
-    cursor.execute("""
-        SELECT *
-        FROM comment c
-        JOIN answer a on c.answer_id = a.id
-        WHERE a.question_id = %(question_id)s
         """, {'question_id': question_id})
     return cursor.fetchall()
 
@@ -92,7 +88,6 @@ def add_answer_dm(cursor, message, question_id, image_file):
                     'image': image_path})
 
 
-# TODO ADDITIONAL delete button
 @connection.connection_handler
 def delete_question_dm(cursor, question_id):
     image_paths = get_image_paths(question_id)
@@ -102,10 +97,10 @@ def delete_question_dm(cursor, question_id):
         (SELECT answer_id
         FROM answer
         WHERE question_id = %(question_id)s);
-                
+
         DELETE FROM answer
         WHERE question_id = %(question_id)s;
-        
+
         DELETE FROM comment
         WHERE question_id = %(question_id)s;
 
@@ -117,21 +112,22 @@ def delete_question_dm(cursor, question_id):
         """, {'question_id': question_id})
     util.delete_image_files(image_paths)
 
-
+    
 @connection.connection_handler
 def get_image_paths(cursor, question_id):
     cursor.execute("""
-        SELECT image
-        FROM question
-        WHERE id = %(question_id)s
-        UNION ALL
-        SELECT image
-        FROM answer
-        WHERE question_id = %(question_id)s
-        """, {'question_id': question_id})
+                    SELECT image
+                    FROM question
+                    WHERE id = %(question_id)s
+                    UNION ALL
+                    SELECT image
+                    FROM answer
+                    WHERE question_id = %(question_id)s
+                    """, {'question_id': question_id})
     images = cursor.fetchall()
     image_paths = [image['image'] for image in images]
     return image_paths
+
 
 
 @connection.connection_handler
@@ -158,7 +154,7 @@ def update_question_dm(cursor, title, message, old_image_path, new_image_file, q
     if remove_image:  # TODO why doesn't it work with if/elif/else condition
         util.delete_image_files([old_image_path])
     if new_image_file.filename != '':
-        new_image_path = util.save_image_dm(new_image_file)
+        new_image_path = util.save_image(new_image_file)
     if remove_image and new_image_file.filename == '':
         new_image_path = old_image_path
     cursor.execute("""
@@ -173,6 +169,7 @@ def update_question_dm(cursor, title, message, old_image_path, new_image_file, q
                     'image': new_image_path,
                     'question_id': question_id})
 
+   
 
 @connection.connection_handler
 def vote_on_question_dm(cursor, question_id, vote_direction):
@@ -185,6 +182,7 @@ def vote_on_question_dm(cursor, question_id, vote_direction):
         END
         WHERE id = %(question_id)s;
     """, {'question_id': question_id, 'vote_direction': vote_direction})
+  
 
 
 @connection.connection_handler
@@ -201,6 +199,43 @@ def vote_on_answer_dm(cursor, answer_id, vote_direction):
     """, {'answer_id': answer_id, 'vote_direction': vote_direction})
     question_id = cursor.fetchone()['question_id']
     return question_id
+  
+  
+@connection.connection_handler
+def get_comments_by_question_id_dm(cursor, question_id):
+    query="""
+            SELECT *
+            FROM comment
+            WHERE question_id = %(question_id)s
+            ORDER BY submission_time DESC;
+            """
+    cursor.execute(query,{'question_id': question_id})
+    return cursor.fetchall()
+  
+  
+@connection.connection_handler
+def add_comment_question(cursor,question_id, message):
+    submission_time = util.get_time()
+    query ="""
+            INSERT INTO comment(question_id, message,submission_time, edited_count)
+            VALUES (%(question_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
+            """
+    cursor.execute(query,{'question_id':question_id,'message': message,'submission_time': submission_time, 'edited_count':0})
+
+
+@connection.connection_handler
+def edit_comment_dm(cursor,question_id, message):
+    pass
+
+@connection.connection_handler
+def get_comments_to_answers_dm(cursor, question_id):
+    cursor.execute("""
+        SELECT *
+        FROM comment c
+        JOIN answer a on c.answer_id = a.id
+        WHERE a.question_id = %(question_id)s
+        """, {'question_id': question_id})
+    return cursor.fetchall()
 
 
 @connection.connection_handler
@@ -245,3 +280,4 @@ def add_comment_to_answer_dm(cursor, answer_id, message):
 #                   'tag':tag})
 #     tags = cursor.fetchall()
 #     return tags
+

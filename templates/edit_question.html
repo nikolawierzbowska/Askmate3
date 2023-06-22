@@ -26,19 +26,19 @@
     <form action="/question/{{question.id}}/edit" method="POST" enctype="multipart/form-data">
         <div>
             <label for="title">Title:</label>
-            <input type="text" id="title" name="title" value={{question.title}} maxlength="100" required>
+            <input type="text" id="title" name="title" value={{question['title']}} maxlength="100" required>
         </div>
 
         <div>
             <label for="message">Message:</label>
-            <textarea id="message" name="message" required>{{question.message}} </textarea>
+            <textarea id="message" name="message" required>{{question['message']}} </textarea>
         </div>
         <div>
             <label for="image">Image:</label>
             <input type="file" id="image" name="image">
         </div>
 
-        {% if question.image %}
+        {% if question['image'] %}
         <div>
             <label>Current Image:</label>
             <img src="../../{{ question.image }}" alt="Question Image">

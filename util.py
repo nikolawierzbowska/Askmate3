@@ -1,15 +1,11 @@
 import datetime
-import os
+
 import uuid
+import os
 from pathlib import Path
 
 
-def convert_timestamp_to_date(timestamp):
-    date = datetime.datetime.fromtimestamp(timestamp)
-    return date.strftime("%Y-%m-%d %H:%M:%S")
-
-
-def save_image_dm(image_file):
+def save_image(image_file):
     unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
     image_path = 'static/uploads/' + unique_filename
     image_file.save(image_path)
@@ -23,3 +19,4 @@ def get_time():
 def delete_image_files(image_paths):
     [Path(image_path).unlink() for image_path in image_paths if image_path and
      Path(image_path).is_file() and Path(image_path).exists()]
+

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="eng">
 <head>
     <title>Question and answers</title>
     <style>
@@ -84,7 +84,8 @@
     </style>
 </head>
 <body>
-    <h1>Question and Answers</h1>
+<h1>Question and Answers</h1>
+
 
     <table>
         <tr>
@@ -100,63 +101,94 @@
                         <a href="/question/{{ question.id }}/vote_up?source=question">&#128077;</a>
                         <a href="/question/{{ question.id }}/vote_down?source=question">&#128078;</a>
                     </div>
+
                 </div>
-            </td>
-            <td>{{ question.message }}</td>
-            <td>
+            </div>
+        </td>
+        <td>{{ question['message'] }}</td>
+        <td>
                 <span class="remove_img">
-                    {% if question.image %}
-                        <img src="../{{ question.image }}" alt="Question Image" style="max-width: 150px;">
+
+                    {% if question['image'] %}
+                        <img src="../{{ question['image'] }}" alt="Question Image" style="max-width: 150px;">
                         <div class="del_img small-icon">
-                            <a href="/question/{{ question_id }}/delete_image">
-                                <button type="button" id="remove_image" name="">&#10060;</button>
-                            </a>
-                        </div>
+                                <a href="/question/{{ question_id }}/delete_image">
+                                    <button type="button" id="remove_image" name="">&#10060;</button>
+                                </a>
+                            </div>
                     {% endif %}
                 </span>
-            </td>
-        </tr>
-    </table>
-    <div class="buttons">
-        <p>
-            <a href="/list?order_by=submission_time&order_direction=desc">
-                <button>List of questions</button>
-            </a>
-        </p>
-        <p>
-            <a href="/question/{{ question.id }}/new_answer">
-                <button>Add new answer</button>
-            </a>
-        </p>
-        <p>
-            <a href='/question/{{ question.id }}/delete'>
-                <button>Delete question</button>
-            </a>
-        </p>
-        <p>
-            <a href='/question/{{ question.id }}/edit'>
-                <button>Edit question</button>
-            </a>
-        </p>
-    </div>
+        </td>
+    </tr>
+</table>
+<div class="buttons">
+    <p>
+        <a href="/list">
+            <button>List of questions</button>
+        </a>
+    </p>
+    <p>
+        <a href="/question/{{ question.id }}/new_answer">
+            <button>Add new answer</button>
+        </a>
+    </p>
+    <p>
+        <a href='/question/{{ question.id }}/delete'>
+            <button>Delete question</button>
+        </a>
 
-    <table>
+    </p>
+    <p>
+        <a href='/question/{{ question.id }}/edit'>
+            <button>Edit question</button>
+        </a>
+    </p>
+    <p>
+        <a href='/question/{{ question.id }}/new_comment'>
+            <button>Add comment to question</button>
+        </a>
+    </p>
+</div>
+
+<table>
+    <tr>
+        <th colspan="2">Comment to question</th>
+    </tr>
+    <tr>
+        <th>Date</th>
+        <th>Message</th>
+    </tr>
+    {% for comment in comments %}
         <tr>
-            <th>Date</th>
-            <th>Votes</th>
-            <th>Answers</th>
-            <th>Image</th>
+            <td>{{ comment.submission_time }}</td>
+            <td>{{ comment.message }}<a href="/comment/{{ comment_id }}/edit">
+                <button type="button" id="edit_comment" name="">&#9998;</button>
+            </a></td>
         </tr>
-        {% for answer in answers %}
-            <tr>
-                <td>{{ answer.submission_time }}</td>
-                <td>
-                    <div class="votes">
-                        {{ answer.vote_number }}
-                        <div class="thumb">
-                            <a href="/answer/{{ answer.id }}/vote_up">&#128077;</a>
-                            <a href="/answer/{{ answer.id }}/vote_down">&#128078;</a>
-                        </div>
+
+    {% endfor %}
+</table>
+
+<table>
+    <tr>
+        <th>Date</th>
+        <th>Votes</th>
+        <th>Answers</th>
+        <th>Image</th>
+    </tr>
+
+    {% for answer in answers %}
+        <tr>
+            <td>{{ answer.submission_time }}</td>
+            <td>
+                <div class="votes">
+                    {{ answer.vote_number }}
+                    <div class="thumb">
+                        <a href="/answer/{{ answer.id }}/vote_up">&#128077;</a>
+                        <a href="/answer/{{ answer.id }}/vote_down">&#128078;</a>
+    
+                     </div>
+
                     </div>
                 </td>
                 <td>
@@ -169,9 +201,9 @@
                         <a href='/answer/{{ answer.id }}/edit'>
                             <button type="button" id="edit_answer" name="">&#9998;</button>
                         </a>
+
                         </span>
                     </div>
-
 
                     <table>
                         <tr>
@@ -199,7 +231,6 @@
                             {% endif %}
                         {% endfor %}
                     </table>
-
 
                 </td>
                 <td>
