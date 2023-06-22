@@ -2,6 +2,7 @@ import connection
 import util
 
 
+
 @connection.connection_handler
 def get_sorted_questions(cursor, order_by, order_direction):
     order = "ASC" if order_direction.upper() == "ASC" else "DESC"
@@ -17,45 +18,38 @@ def get_sorted_questions(cursor, order_by, order_direction):
     """)
     return cursor.fetchall()
 
-
+  
 @connection.connection_handler
 def get_question_data_by_id_dm(cursor, question_id):
-    query = """
-     SELECT *
-     FROM question
-     WHERE id= %(question_id)s;"""
-    cursor.execute(query, {"question_id": question_id})
-    return cursor.fetchone()
+    cursor.execute("""
+        SELECT *
+        FROM question
+        WHERE id = %(question_id)s;
+        """, {'question_id': question_id})
+  return cursor.fetchone()
+
+
 
 @connection.connection_handler
 def view_question_dm(cursor, question_id):
-    query = """
-        UPDATE question
+    cursor.execute("""
+        UPDATE question 
         SET view_number = view_number + 1
-        WHERE id = %(question_id)s;"""
-    cursor.execute(query, {"question_id": question_id})
+        WHERE id = %(question_id)s;
+        """, {'question_id': question_id})
 
+
+    
 @connection.connection_handler
 def get_answers_by_question_id_dm(cursor, question_id):
-    query = """
-     SELECT *
-     FROM answer
-     WHERE question_id= %(question_id)s
-     ORDER BY submission_time DESC"""
-    cursor.execute(query, {"question_id": question_id})
+    cursor.execute("""
+        SELECT *
+        FROM answer
+        WHERE question_id = %(question_id)s
+        ORDER BY submission_time DESC;
+        """, {'question_id': question_id})
     return cursor.fetchall()
 
-
-@connection.connection_handler
-def get_comments_by_question_id_dm(cursor, question_id):
-    query="""
-            SELECT *
-            FROM comment
-            WHERE question_id = %(question_id)s
-            ORDER BY submission_time DESC;
-            """
-    cursor.execute(query,{'question_id': question_id})
-    return cursor.fetchall()
 
 @connection.connection_handler
 def add_question_dm(cursor, title, message, image_file):
@@ -63,15 +57,18 @@ def add_question_dm(cursor, title, message, image_file):
     image_path = None
     if image_file.filename != '':
         image_path = util.save_image_dm(image_file)
-    query ="""
-            INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
-            VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
-            RETURNING id;"""
-    cursor.execute(query,{'submission_time': submission_time,'view_number': 0,'vote_number': 0,'title': title,'message': message,
-            'image': image_path})
+    cursor.execute("""
+        INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
+        VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
+        RETURNING id;""",
+                   {'submission_time': submission_time,
+                    'vote_number': 0,
+                    'view_number': 0,
+                    'title': title,
+                    'message': message,
+                    'image': image_path})
     new_question_id = cursor.fetchone()['id']
     return new_question_id
-
 
 
 @connection.connection_handler
@@ -80,12 +77,15 @@ def add_answer_dm(cursor, message, question_id, image_file):
     image_path = None
     if image_file.filename != '':
         image_path = util.save_image_dm(image_file)
-    query="""
-         INSERT INTO answer(submission_time,vote_number,message,question_id,image)
-         VALUES (%(submission_time)s, %(vote_number)s,%(message)s,%(question_id)s, %(image)s);
-         """
-    cursor.execute(query,{'submission_time': submission_time,'vote_number': 0,'message': message,'question_id': question_id,'image': image_path})
-
+    cursor.execute("""
+        INSERT INTO answer(submission_time, vote_number, message, question_id, image)
+        VALUES (%(submission_time)s, %(vote_number)s, %(message)s, %(question_id)s, %(image)s);
+        """,
+                   {'submission_time': submission_time,
+                    'vote_number': 0,
+                    'message': message,
+                    'question_id': question_id,
+                    'image': image_path})
 
 
 @connection.connection_handler
@@ -112,6 +112,7 @@ def delete_question_dm(cursor, question_id):
         """, {'question_id': question_id})
     util.delete_image_files(image_paths)
 
+    
 @connection.connection_handler
 def get_image_paths(cursor, question_id):
     cursor.execute("""
@@ -128,64 +129,60 @@ def get_image_paths(cursor, question_id):
     return image_paths
 
 
+
 @connection.connection_handler
 def delete_answer_by_id(cursor, answer_id):
-    query = """
+    cursor.execute("""
         DELETE FROM comment
-        WHERE answer_id  = %(answer_id)s;
+        WHERE answer_id = %(answer_id)s;
 
         DELETE FROM answer
-        WHERE id  = %(answer_id)s
-        RETURNING image, question_id;"""
-    cursor.execute(query, {"answer_id": answer_id})
+        WHERE id = %(answer_id)s
+        RETURNING image, question_id;
+        """, {'answer_id': answer_id})
     data = cursor.fetchone()
     image_path = data['image']
-    question_id = data["question_id"]
-    util.delete_image_files(image_path)
+    question_id = data['question_id']
+    util.delete_image_files([image_path])
     return question_id
 
 
+# TODO ADDITIONAL add date of edition
 @connection.connection_handler
-def add_comment_dm(cursor,question_id, message):
-    submission_time = util.get_time()
-    query ="""
-            INSERT INTO comment(question_id, message,submission_time, edited_count)
-            VALUES (%(question_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
-            """
-    cursor.execute(query,{'question_id':question_id,'message': message,'submission_time': submission_time, 'edited_count':0})
-
-
-@connection.connection_handler
-def update_question_dm(cursor, title, message,old_image_path, new_image_file, question_id, remove_image):
+def update_question_dm(cursor, title, message, old_image_path, new_image_file, question_id, remove_image):
     new_image_path = None
-    if remove_image:
+    if remove_image:  # TODO why doesn't it work with if/elif/else condition
         util.delete_image_files([old_image_path])
-    if new_image_file.filename !="":
-        new_image_path = util.save_image_dm(new_image_file)
-    if not remove_image and new_image_file.filename =="":
+    if new_image_file.filename != '':
+        new_image_path = util.save_image(new_image_file)
+    if remove_image and new_image_file.filename == '':
         new_image_path = old_image_path
-    query = """
-            UPDATE question
-            SET 
-            title = %(title)s,
-            message = %(message)s,
+    cursor.execute("""
+        UPDATE question 
+        SET 
+            title = %(title)s, 
+            message = %(message)s, 
             image = %(image)s
-            WHERE id = %(question_id)s;"""
-    cursor.execute(query, {'title': title, 'message': message, 'image': new_image_path,'question_id':question_id})
+        WHERE id = %(question_id)s;""",
+                   {'title': title,
+                    'message': message,
+                    'image': new_image_path,
+                    'question_id': question_id})
 
+   
 
 @connection.connection_handler
-def vote_on_question_dm(cursor,question_id,vote_direction):
-    query = """
-            UPDATE question
-            SET vote_number = CASE
-                WHEN %(vote_direction)s = 'up' THEN vote_number + 1
-                WHEN %(vote_direction)s = 'down' THEN vote_number - 1
-                ELSE vote_number
-            END
-            WHERE id = %(question_id)s;"""
-    cursor.execute(query, {'question_id':question_id, "vote_direction":vote_direction})
-
+def vote_on_question_dm(cursor, question_id, vote_direction):
+    cursor.execute("""
+        UPDATE question 
+        SET vote_number = CASE
+            WHEN %(vote_direction)s = 'up' THEN vote_number + 1
+            WHEN %(vote_direction)s = 'down' THEN vote_number - 1
+            ELSE vote_number
+        END
+        WHERE id = %(question_id)s;
+    """, {'question_id': question_id, 'vote_direction': vote_direction})
+  
 
 
 @connection.connection_handler
@@ -202,20 +199,85 @@ def vote_on_answer_dm(cursor, answer_id, vote_direction):
     """, {'answer_id': answer_id, 'vote_direction': vote_direction})
     question_id = cursor.fetchone()['question_id']
     return question_id
+  
+  
+@connection.connection_handler
+def get_comments_by_question_id_dm(cursor, question_id):
+    query="""
+            SELECT *
+            FROM comment
+            WHERE question_id = %(question_id)s
+            ORDER BY submission_time DESC;
+            """
+    cursor.execute(query,{'question_id': question_id})
+    return cursor.fetchall()
+  
+  
+@connection.connection_handler
+def add_comment_question(cursor,question_id, message):
+    submission_time = util.get_time()
+    query ="""
+            INSERT INTO comment(question_id, message,submission_time, edited_count)
+            VALUES (%(question_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
+            """
+    cursor.execute(query,{'question_id':question_id,'message': message,'submission_time': submission_time, 'edited_count':0})
 
 
 @connection.connection_handler
 def edit_comment_dm(cursor,question_id, message):
     pass
 
+@connection.connection_handler
+def get_comments_to_answers_dm(cursor, question_id):
+    cursor.execute("""
+        SELECT *
+        FROM comment c
+        JOIN answer a on c.answer_id = a.id
+        WHERE a.question_id = %(question_id)s
+        """, {'question_id': question_id})
+    return cursor.fetchall()
+
 
 @connection.connection_handler
-def get_question_id_by_answer(cursor, answer_id):
-    query = """
-        SELECT question_id 
+def add_comment_to_answer_dm(cursor, answer_id, message):
+    submission_time = util.get_time()
+    cursor.execute("""
+        INSERT INTO comment(answer_id, message, submission_time, edited_count)
+        VALUES (%(answer_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
+        
+        SELECT question_id
         FROM answer
-        WHERE id = %(answer_id)s;"""
-    cursor.execute(query, {"answer_id": answer_id})
-    return cursor.fetchone()["question_id"]
+        WHERE id = %(answer_id)s;
+        """, {'answer_id': answer_id,
+              'message': message,
+              'submission_time': submission_time,
+              'edited_count': 0})
+    question_id = cursor.fetchone()['question_id']
+    return question_id
 
+#
+# @connection.connection_handler
+# def get_tags_by_question_id(cursor, question_id):
+#     cursor.execute("""
+#     SELECT t.id, t.name
+#     FROM tag t
+#     JOIN question_tag q on q.tag_id = t.id
+#     WHERE q.question_id = %(question_id)s;
+#         """, {'question_id': question_id})
+#     tags = cursor.fetchall()
+#     return tags
+#
+# @connection.connection_handler
+# def add_tags_to_question_dm(cursor, question_id, tags):
+#         cursor.execute("""
+#         INSERT INTO tag (name)
+#         SELECT DISTINCT tag_name
+#         FROM (VALUES ('tag1'), ('tag2'), ('tag3')) AS tags(tag_name)
+#         WHERE tag_name NOT IN (
+#             SELECT name
+#             FROM tag);
+#             """, {'question_id': question_id,
+#                   'tag':tag})
+#     tags = cursor.fetchall()
+#     return tags
 

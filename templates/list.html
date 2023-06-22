@@ -68,7 +68,9 @@
 <body>
     <h1>Questions</h1>
     <p>
+
         <a href="{{ "/add_question" }}" class="add_question_link">
+
             <button>Add Question</button>
         </a>
     </p>
@@ -136,23 +138,23 @@
         <tbody>
             {% for question in questions %}
             <tr>
-                <td>{{ question['submission_time'] }}</td>
-                <td>{{ question['view_number'] }}</td>
+                <td>{{ question.submission_time }}</td>
+                <td>{{ question.view_number }}</td>
                 <td>
                     <div class="vote">
                         {{ question['vote_number'] }}
                         <div class="thumb">
-                            <a href="/question/{{question['id']}}/vote_up">&#x1F44D;</a>
-                            <a href="/question/{{question['id']}}/vote_down">&#x1F44E;</a>
+                            <a href="/question/{{question.id}}/vote_up">&#x1F44D;</a>
+                            <a href="/question/{{question.id}}/vote_down">&#x1F44E;</a>
                         </div>
                     </div>
                 </td>
-                <td>{{ question['number_of_answers'] }}</td>
-                <td><a href="/question/{{ question['id'] }}">{{ question['title'] }}</a></td>
-                <td>{{ question['message'] }}</td>
+                <td>{{ question.number_of_answers }}</td>
+                <td><a href="/question/{{ question.id }}">{{ question.title }}</a></td>
+                <td>{{ question.message }}</td>
                 <td>
-                    {% if question['image'] %}
-                        <img src="{{ question['image'] }}" alt="Question Image" style="max-width: 50px;">
+                    {% if question.image %}
+                        <img src="{{ question.image }}" alt="Question Image" style="max-width: 50px;">
                     {% endif %}
                 </td>
             </tr>

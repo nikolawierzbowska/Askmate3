@@ -1,4 +1,5 @@
 import os
+
 import psycopg2
 import psycopg2.extras
 
@@ -23,6 +24,7 @@ def get_connection_string():
     else:
         raise KeyError('Some necessary environment variable(s) are not defined')
 
+
 def open_database():
     try:
         connection_string = get_connection_string()
@@ -33,10 +35,10 @@ def open_database():
         raise exception
     return connection
 
+
 def connection_handler(function):
     def wrapper(*args, **kwargs):
         connection = open_database()
-        # we set the cursor_factory parameter to return with a RealDictCursor cursor (cursor which provide dictionaries)
         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as dict_cur:
             ret_value = function(dict_cur, *args, **kwargs)
         connection.close()
