@@ -4,13 +4,17 @@ import util
 
 @connection.connection_handler
 def get_sorted_questions(cursor, order_by, order_direction):
-    query = """
+    order = "ASC" if order_direction.upper() == "ASC" else "DESC"
+    order_columns = ['submission_time', 'view_number', 'vote_number',
+                     'number_of_answers', 'title', 'message']
+    if order_by not in order_columns:
+        raise Exception('Wrong order by query.')
+    cursor.execute(f"""
         SELECT *,
         (SELECT COUNT(id) FROM answer a WHERE q.id = a.question_id) AS number_of_answers
         FROM question q
-        ORDER BY {} {};
-    """.format(order_by, order_direction)
-    cursor.execute(query)
+        ORDER BY {order_by} {order};
+    """)
     return cursor.fetchall()
 
 
@@ -23,6 +27,13 @@ def get_question_data_by_id_dm(cursor, question_id):
     cursor.execute(query, {"question_id": question_id})
     return cursor.fetchone()
 
+@connection.connection_handler
+def view_question_dm(cursor, question_id):
+    query = """
+        UPDATE question
+        SET view_number = view_number + 1
+        WHERE id = %(question_id)s;"""
+    cursor.execute(query, {"question_id": question_id})
 
 @connection.connection_handler
 def get_answers_by_question_id_dm(cursor, question_id):
@@ -34,6 +45,17 @@ def get_answers_by_question_id_dm(cursor, question_id):
     cursor.execute(query, {"question_id": question_id})
     return cursor.fetchall()
 
+
+@connection.connection_handler
+def get_comments_by_question_id_dm(cursor, question_id):
+    query="""
+            SELECT *
+            FROM comment
+            WHERE question_id = %(question_id)s
+            ORDER BY submission_time DESC;
+            """
+    cursor.execute(query,{'question_id': question_id})
+    return cursor.fetchall()
 
 @connection.connection_handler
 def add_question_dm(cursor, title, message, image_file):
@@ -50,30 +72,6 @@ def add_question_dm(cursor, title, message, image_file):
     new_question_id = cursor.fetchone()['id']
     return new_question_id
 
-@connection.connection_handler
-def get_comments_by_question_id_dm(cursor, question_id):
-    query="""
-            SELECT *
-            FROM comment
-            WHERE question_id = %(question_id)s
-            ORDER BY submission_time DESC;
-            """
-    cursor.execute(query,{'question_id': question_id})
-    return cursor.fetchall()
-
-@connection.connection_handler
-def add_comment_dm(cursor,question_id, message):
-    submission_time = util.get_time()
-    query ="""
-            INSERT INTO comment(question_id, message,submission_time, edited_count)
-            VALUES (%(question_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
-            """
-    cursor.execute(query,{'question_id':question_id,'message': message,'submission_time': submission_time, 'edited_count':0})
-
-
-@connection.connection_handler
-def edit_comment_dm(cursor,question_id, message):
-    pass
 
 
 @connection.connection_handler
@@ -88,15 +86,6 @@ def add_answer_dm(cursor, message, question_id, image_file):
          """
     cursor.execute(query,{'submission_time': submission_time,'vote_number': 0,'message': message,'question_id': question_id,'image': image_path})
 
-
-@connection.connection_handler
-def get_question_id_by_answer(cursor, answer_id):
-    query = """
-        SELECT question_id 
-        FROM answer
-        WHERE id = %(answer_id)s;"""
-    cursor.execute(query, {"answer_id": answer_id})
-    return cursor.fetchone()["question_id"]
 
 
 @connection.connection_handler
@@ -123,24 +112,6 @@ def delete_question_dm(cursor, question_id):
         """, {'question_id': question_id})
     util.delete_image_files(image_paths)
 
-
-@connection.connection_handler
-def delete_answer_by_id(cursor, answer_id):
-    query = """
-        DELETE FROM comment
-        WHERE answer_id  = %(answer_id)s;
-        
-        DELETE FROM answer
-        WHERE id  = %(answer_id)s
-        RETURNING image, question_id;"""
-    cursor.execute(query, {"answer_id": answer_id})
-    data = cursor.fetchone()
-    image_path = data['image']
-    question_id = data["question_id"]
-    util.delete_image_files(image_path)
-    return question_id
-
-
 @connection.connection_handler
 def get_image_paths(cursor, question_id):
     cursor.execute("""
@@ -155,6 +126,33 @@ def get_image_paths(cursor, question_id):
     images = cursor.fetchall()
     image_paths = [image['image'] for image in images]
     return image_paths
+
+
+@connection.connection_handler
+def delete_answer_by_id(cursor, answer_id):
+    query = """
+        DELETE FROM comment
+        WHERE answer_id  = %(answer_id)s;
+
+        DELETE FROM answer
+        WHERE id  = %(answer_id)s
+        RETURNING image, question_id;"""
+    cursor.execute(query, {"answer_id": answer_id})
+    data = cursor.fetchone()
+    image_path = data['image']
+    question_id = data["question_id"]
+    util.delete_image_files(image_path)
+    return question_id
+
+
+@connection.connection_handler
+def add_comment_dm(cursor,question_id, message):
+    submission_time = util.get_time()
+    query ="""
+            INSERT INTO comment(question_id, message,submission_time, edited_count)
+            VALUES (%(question_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
+            """
+    cursor.execute(query,{'question_id':question_id,'message': message,'submission_time': submission_time, 'edited_count':0})
 
 
 @connection.connection_handler
@@ -206,11 +204,18 @@ def vote_on_answer_dm(cursor, answer_id, vote_direction):
     return question_id
 
 
+@connection.connection_handler
+def edit_comment_dm(cursor,question_id, message):
+    pass
+
 
 @connection.connection_handler
-def view_question_dm(cursor, question_id):
+def get_question_id_by_answer(cursor, answer_id):
     query = """
-        UPDATE question
-        SET view_number = view_number + 1
-        WHERE id = %(question_id)s;"""
-    cursor.execute(query, {"question_id": question_id})
+        SELECT question_id 
+        FROM answer
+        WHERE id = %(answer_id)s;"""
+    cursor.execute(query, {"answer_id": answer_id})
+    return cursor.fetchone()["question_id"]
+
+

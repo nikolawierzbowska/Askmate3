@@ -6,7 +6,7 @@ from pathlib import Path
 def get_time():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-def save_image_dm(image_file):
+def save_image(image_file):
     unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
     image_path = 'static/uploads/' + unique_filename
     image_file.save(image_path)

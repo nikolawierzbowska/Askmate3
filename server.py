@@ -44,46 +44,7 @@ def add_question():
         return flask.render_template('add_question.html')
 
 
-@app.route('/question/<int:question_id>/edit', methods=['GET', 'POST'])
-def edit_question(question_id):
-    delete_image = None
-    question = data_manager.get_question_data_by_id_dm(question_id)
-    if flask.request.method == 'GET':
-        return flask.render_template('edit_question.html', question=question)
-    elif flask.request.method == 'POST':
-        title = flask.request.form['title']
-        message = flask.request.form['message']
-        new_image_file = flask.request.files['image']
-        old_image_path = question["image"]
-        remove_image_checkbox = flask.request.form.get('remove_image')
-        if 'image' in flask.request.files and new_image_file.filename != '':
-            delete_image = True
-            data_manager.update_question_dm(title, message, old_image_path,new_image_file, question_id, delete_image)
-        elif remove_image_checkbox:
-            data_manager.update_question_dm(title, message, old_image_path, new_image_file,question_id,
-                                            remove_image_checkbox)
-        elif not remove_image_checkbox:
-            data_manager.update_question_dm(title, message, old_image_path, new_image_file, question_id,
-                                            delete_image)
-        return flask.redirect(f'/question/{question_id}')
-
-
-@app.route('/comment/<comment_id>/edit.', methods=['GET', 'POST'])
-def edit_comment_to_question(question_id):
-    pass
-
-
-@app.route('/question/<int:question_id>/new_comment', methods=['GET', 'POST'])
-def add_comment_to_question(question_id):
-    if flask.request.method == 'POST':
-        new_comment = flask.request.form['message']
-        data_manager.add_comment_dm(question_id,new_comment)
-        return flask.redirect(f'/question/{question_id}')
-    elif flask.request.method == 'GET':
-        return flask.render_template('add_comment_to_question.html', question_id=question_id)
-
-
-@app.route('/question/<int:question_id>/new_answer', methods=['GET', 'POST'])
+@app.route('/question/<question_id>/new_answer', methods=['GET', 'POST'])
 def add_answer(question_id):
     if flask.request.method == 'POST':
         message = flask.request.form['message']
@@ -106,8 +67,28 @@ def delete_answer(answer_id):
     return flask.redirect(f'/question/{question_id}')
 
 
-
-
+@app.route('/question/<int:question_id>/edit', methods=['GET', 'POST'])
+def edit_question(question_id):
+    delete_image = None
+    question = data_manager.get_question_data_by_id_dm(question_id)
+    if flask.request.method == 'GET':
+        return flask.render_template('edit_question.html', question=question)
+    elif flask.request.method == 'POST':
+        title = flask.request.form['title']
+        message = flask.request.form['message']
+        new_image_file = flask.request.files['image']
+        old_image_path = question["image"]
+        remove_image_checkbox = flask.request.form.get('remove_image')
+        if 'image' in flask.request.files and new_image_file.filename != '':
+            delete_image = True
+            data_manager.update_question_dm(title, message, old_image_path,new_image_file, question_id, delete_image)
+        elif remove_image_checkbox:
+            data_manager.update_question_dm(title, message, old_image_path, new_image_file,question_id,
+                                            remove_image_checkbox)
+        elif not remove_image_checkbox:
+            data_manager.update_question_dm(title, message, old_image_path, new_image_file, question_id,
+                                            delete_image)
+        return flask.redirect(f'/question/{question_id}')
 
 
 @app.route('/question/<int:question_id>/vote_up')
@@ -141,6 +122,21 @@ def vote_down_answers(answer_id):
     question_id = data_manager.vote_on_answer_dm(answer_id, "down")
     return flask.redirect(f'/question/{question_id}')
 
+
+
+@app.route('/comment/<comment_id>/edit.', methods=['GET', 'POST'])
+def edit_comment_to_question(question_id):
+    pass
+
+
+@app.route('/question/<int:question_id>/new_comment', methods=['GET', 'POST'])
+def add_comment_to_question(question_id):
+    if flask.request.method == 'POST':
+        new_comment = flask.request.form['message']
+        data_manager.add_comment_dm(question_id,new_comment)
+        return flask.redirect(f'/question/{question_id}')
+    elif flask.request.method == 'GET':
+        return flask.render_template('add_comment_to_question.html', question_id=question_id)
 
 
 # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
