@@ -219,3 +219,29 @@ def add_comment_to_answer_dm(cursor, answer_id, message):
               'edited_count': 0})
     question_id = cursor.fetchone()['question_id']
     return question_id
+
+#
+# @connection.connection_handler
+# def get_tags_by_question_id(cursor, question_id):
+#     cursor.execute("""
+#     SELECT t.id, t.name
+#     FROM tag t
+#     JOIN question_tag q on q.tag_id = t.id
+#     WHERE q.question_id = %(question_id)s;
+#         """, {'question_id': question_id})
+#     tags = cursor.fetchall()
+#     return tags
+#
+# @connection.connection_handler
+# def add_tags_to_question_dm(cursor, question_id, tags):
+#         cursor.execute("""
+#         INSERT INTO tag (name)
+#         SELECT DISTINCT tag_name
+#         FROM (VALUES ('tag1'), ('tag2'), ('tag3')) AS tags(tag_name)
+#         WHERE tag_name NOT IN (
+#             SELECT name
+#             FROM tag);
+#             """, {'question_id': question_id,
+#                   'tag':tag})
+#     tags = cursor.fetchall()
+#     return tags

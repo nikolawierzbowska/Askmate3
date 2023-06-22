@@ -5,7 +5,7 @@ import data_manager
 
 app = Flask(__name__)
 
-# TODO Add comment to answer
+# TODO Add comment to answer (partly done)
 # TODO tag question
 
 
@@ -104,6 +104,12 @@ def edit_question(question_id):  # delete file -> util
         return flask.redirect(f'/question/{question_id}')
 
 
+# @app.route('/question/<question_id>/delete_image')
+# def delete_question_image(question_id):  # delete file -> util
+#     data_manager.delete_image(question_id)
+#     return flask.redirect(f'/question/{question_id}')
+
+
 @app.route('/question/<question_id>/vote_up')
 def vote_up_questions(question_id):
     if flask.request.args.get("source") == "question":
@@ -134,6 +140,17 @@ def vote_up_answers(answer_id):
 def vote_down_answers(answer_id):
     question_id = data_manager.vote_on_answer_dm(answer_id, "down")
     return flask.redirect(f'/question/{question_id}')
+
+
+# @app.route('/question/<question_id>/new-tag')
+# def add_tag(question_id):
+#     tags = data_manager.get_tags_by_question_id()
+#     if flask.request.method == 'POST':
+#         tags = flask.request.form.getlist('tags')
+#         data_manager.add_tags_to_question_dm(question_id, tags)
+#         return flask.redirect(f'/question/{question_id}')
+#     elif flask.request.method == 'GET':
+#         return flask.render_template('add_tag.html', tags=tags)
 
 
 if __name__ == '__main__':

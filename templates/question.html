@@ -98,20 +98,20 @@
                     {{ question['title'] }}
                     <div class="thumb">
                         <a href="/question/{{ question.id }}/vote_up?source=question">&#128077;</a>
-                        <a href="/question/{{question.id}}/vote_down?source=question">&#128078;</a>
+                        <a href="/question/{{ question.id }}/vote_down?source=question">&#128078;</a>
                     </div>
                 </div>
             </td>
-            <td>{{ question['message'] }}</td>
+            <td>{{ question.message }}</td>
             <td>
                 <span class="remove_img">
-                    {% if question['image'] %}
-                        <img src="../{{ question['image'] }}" alt="Question Image" style="max-width: 150px;">
-                            <div class="del_img small-icon">
-                                <a href="/question/{{question_id}}/delete_image">
-                                    <button type="button" id="remove_image" name="">&#10060;</button>
-                                </a>
-                            </div>
+                    {% if question.image %}
+                        <img src="../{{ question.image }}" alt="Question Image" style="max-width: 150px;">
+                        <div class="del_img small-icon">
+                            <a href="/question/{{ question_id }}/delete_image">
+                                <button type="button" id="remove_image" name="">&#10060;</button>
+                            </a>
+                        </div>
                     {% endif %}
                 </span>
             </td>
@@ -124,24 +124,23 @@
             </a>
         </p>
         <p>
-            <a href="/question/{{ question['id'] }}/new_answer">
+            <a href="/question/{{ question.id }}/new_answer">
                 <button>Add new answer</button>
             </a>
         </p>
         <p>
-            <a href='/question/{{question['id']}}/delete'>
+            <a href='/question/{{ question.id }}/delete'>
                 <button>Delete question</button>
             </a>
-
         </p>
         <p>
-            <a href='/question/{{question['id']}}/edit'>
+            <a href='/question/{{ question.id }}/edit'>
                 <button>Edit question</button>
             </a>
         </p>
     </div>
 
-   <table>
+    <table>
         <tr>
             <th>Date</th>
             <th>Votes</th>
@@ -149,54 +148,70 @@
             <th>Image</th>
         </tr>
         {% for answer in answers %}
-        <tr>
-            <td>{{ answer['submission_time'] }}</td>
-            <td>
-                <div class="votes">
-                    {{ answer['vote_number'] }}
-                    <div class="thumb">
-                        <a href="/answer/{{ answer.id }}/vote_up">&#128077;</a>
-                        <a href="/answer/{{ answer.id }}/vote_down">&#128078;</a>
+            <tr>
+                <td>{{ answer.submission_time }}</td>
+                <td>
+                    <div class="votes">
+                        {{ answer.vote_number }}
+                        <div class="thumb">
+                            <a href="/answer/{{ answer.id }}/vote_up">&#128077;</a>
+                            <a href="/answer/{{ answer.id }}/vote_down">&#128078;</a>
+                        </div>
                     </div>
-                </div>
-            </td>
-            <td>
-                <div class="cell-content cell-text">{{ answer['message'] }}
-                    <span class="edit-delete-buttons small-icon">
+                </td>
+                <td>
+                    <div class="cell-content cell-text">
+                        {{ answer.message }}
+                        <span class="edit-delete-buttons small-icon">
                         <a href="/answer/{{ answer.id }}/delete">
                             <button type="button" id="remove_image" name="">&#10060;</button>
                         </a>
-                        <a href='/answer/{{answer.id}}/edit'>
+                        <a href='/answer/{{ answer.id }}/edit'>
                             <button type="button" id="edit_answer" name="">&#9998;</button>
                         </a>
                     </span>
-                    <a href="/answer/{{ answer.id }}/new_comment">
-                        <button>Add comment</button>
-                    </a>
-                </div>
-                    <div>
-                    <h5>Comments</h5>
-                            {% for comment in comments_to_answers %}
-                                {% if comment.id == answer.id %}
-                                    {{ comment.message }}
-                                    {{ comment.submission_time }}
-                                    {{ comment.edited_count }}
-                                {% endif %}
-                            {% endfor %}
                     </div>
+                    <table>
+                        <tr>
+                            <th>
+                                Comments
+                                <span>
+                                <a href="/answer/{{ answer.id }}/new_comment">
+                                    <button>&#10133;</button>
+                                </a>
+                                </span>
+                            </th>
+                        </tr>
 
-            </td>
-            <td>
-                <div class="remove_img">
-                    {% if answer['image'] %}
-                        <img src="../{{ answer['image'] }}" alt="Answer Image" style="max-width: 150px;">
+                        {% for comment in comments_to_answers %}
+                            {% if comment.id == answer.id %}
+                                <tr>
+                                    <div>
+                                        <td>
+                                            {{ answer.message }}<br>
+                                            <i>{{ comment.submission_time }}</i>
+                                            {% if comment.edited_count != 0 %}
+                                                Number of editions: {{ comment.edited_count }}
+                                            {% endif %}
+                                        </td>
+                                    </div>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </table>
+
+                </td>
+                <td>
+                    <div class="remove_img">
+                        {% if answer.image %}
+                            <img src="../{{ answer.image }}" alt="Answer Image" style="max-width: 150px;">
                             <div class="del_img small-icon">
                                 <button type="button" id="remove_image" name="">&#10060;</button>
                             </div>
-                    {% endif %}
-                </div>
-            </td>
-        </tr>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
         {% endfor %}
     </table>
 </body>
