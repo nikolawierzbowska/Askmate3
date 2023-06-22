@@ -68,6 +68,11 @@ def add_question_dm(cursor, title, message, image_file):
 
 
 @connection.connection_handler
+def edit_comment_dm(cursor,question_id, message):
+    pass
+
+
+@connection.connection_handler
 def add_answer_dm(cursor, message, question_id, image_file):
     submission_time = util.get_time()
     image_path = None
