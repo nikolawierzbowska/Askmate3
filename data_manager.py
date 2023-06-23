@@ -20,10 +20,10 @@ def get_sorted_questions(cursor, order_by, order_direction):
 @connection.connection_handler
 def get_question_data_by_id_dm(cursor, question_id):
     cursor.execute("""
-                    SELECT *
-                    FROM question
-                    WHERE id = %(question_id)s;
-                    """, {'question_id': question_id})
+        SELECT *
+        FROM question
+        WHERE id = %(question_id)s;
+        """, {'question_id': question_id})
     return cursor.fetchone()
 
 
@@ -231,7 +231,7 @@ def edit_comment_dm(cursor, question_id, message):
 @connection.connection_handler
 def get_comments_to_answers_dm(cursor, question_id):
     cursor.execute("""
-                    SELECT c.answer_id, c.message, c.submission_time, edited_count
+                    SELECT c.id, c.answer_id, c.message, c.submission_time, edited_count
                     FROM comment c
                     JOIN answer a on c.answer_id = a.id
                     WHERE a.question_id = %(question_id)s
@@ -258,61 +258,25 @@ def add_comment_to_answer_dm(cursor, answer_id, message):
 
 
 @connection.connection_handler
-def get_comments_by_question_id_dm(cursor, question_id):
+def delete_comment_dm(cursor,comment_id):
     cursor.execute("""
-                    SELECT *
-                    FROM comment
-                    WHERE question_id = %(question_id)s
-                    ORDER BY submission_time DESC;
-                    """, {'question_id': question_id})
-    return cursor.fetchall()
+                    DELETE FROM comment
+                    WHERE id = %(comment_id)s
+                    RETURNING question_id;                                    
+                    """,{'comment_id':comment_id})
 
-
-@connection.connection_handler
-def add_comment_question(cursor, question_id, message):
-    submission_time = util.get_time()
-    cursor.execute("""
-                    INSERT INTO comment(question_id, message,submission_time)
-                    VALUES (%(question_id)s, %(message)s, %(submission_time)s);
-                    """, {'question_id': question_id,
-                          'message': message,
-                          'submission_time': submission_time})
-
-
-@connection.connection_handler
-def edit_comment_dm(cursor, question_id, message):
-    pass
-
-
-@connection.connection_handler
-def get_comments_to_answers_dm(cursor, question_id):
-    cursor.execute("""
-                    SELECT c.id, c.answer_id, c.message, c.submission_time, edited_count
-                    FROM comment c
-                    JOIN answer a on c.answer_id = a.id
-                    WHERE a.question_id = %(question_id)s
-                    ORDER BY submission_time DESC
-                    """,
-                   {'question_id': question_id})
-    return cursor.fetchall()
-
-
-@connection.connection_handler
-def add_comment_to_answer_dm(cursor, answer_id, message):
-    submission_time = util.get_time()
-    cursor.execute("""
-                    INSERT INTO comment(answer_id, message, submission_time)
-                    VALUES (%(answer_id)s, %(message)s, %(submission_time)s);
-                    
-                    SELECT question_id
-                    FROM answer
-                    WHERE id = %(answer_id)s;
-                    """,
-                   {'answer_id': answer_id,
-                    'message': message,
-                    'submission_time': submission_time})
-    question_id = cursor.fetchone()['question_id']
+    question_id = cursor.fetchone()["question_id"]
     return question_id
+
+@connection.connection_handler
+def get_question_id_to_comment(cursor, comment_id):
+    cursor.execute("""
+                    SELECT a.question_id
+                    FROM comment c
+                    JOIN answer a ON a.id = c.answer_id
+                    WHERE c.id = %(comment_id)s;                 
+                    """, {'comment_id':comment_id})
+    return cursor.fetchone()['question_id']
 
 
 @connection.connection_handler
@@ -360,7 +324,7 @@ def add_tags_dm(cursor, question_id, tags):
                             (SELECT 1
                              FROM tag
                              WHERE name = %(tag)s);
-                        
+
                         INSERT INTO question_tag (question_id, tag_id)
                         SELECT %(question_id)s, t.id
                         FROM tag t
