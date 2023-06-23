@@ -17,20 +17,17 @@
     </style>
 </head>
 <body>
-<a href="/question/{{ question_id }}">
-    <button>Go back</button>
-</a>
-<h2>Add Comment</h2>
+    <h2>Add Comment</h2>
 
-<form action="/answer/{{ answer_id }}/new_comment" method="POST" enctype="multipart/form-data">
+    <form action="/answer/{{ answer_id }}/new_comment" method="POST" enctype="multipart/form-data">
 
-    <div>
-        <label for="message">Comment:</label>
-        <textarea id="message" name="message" required></textarea>
-    </div>
-    <div>
-        <input type="submit" value="Submit">
-    </div>
-</form>
+        <div>
+            <label for="message">Comment:</label>
+            <textarea id="message" name="message" required></textarea>
+        </div>
+        <div>
+            <input type="submit" value="Submit">
+        </div>
+    </form>
 </body>
 </html>
