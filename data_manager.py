@@ -223,10 +223,11 @@ def edit_comment_dm(cursor,question_id, message):
 @connection.connection_handler
 def get_comments_to_answers_dm(cursor, question_id):
     cursor.execute("""
-                    SELECT *
+                    SELECT c.id, c.answer_id, c.message, c.submission_time, edited_count
                     FROM comment c
                     JOIN answer a on c.answer_id = a.id
                     WHERE a.question_id = %(question_id)s
+                    ORDER BY submission_time DESC
                     """, {'question_id': question_id})
     return cursor.fetchall()
 
@@ -248,16 +249,27 @@ def add_comment_to_answer_dm(cursor, answer_id, message):
     question_id = cursor.fetchone()['question_id']
     return question_id
 
+
 @connection.connection_handler
 def delete_comment_dm(cursor,comment_id):
     cursor.execute("""
                     DELETE FROM comment
                     WHERE id = %(comment_id)s
-                    RETURNING question_id 
+                    RETURNING question_id;                                    
                     """,{'comment_id':comment_id})
+
+    question_id = cursor.fetchone()["question_id"]
+    return question_id
+
+@connection.connection_handler
+def get_question_id_to_comment(cursor, comment_id):
+    cursor.execute("""
+                    SELECT a.question_id
+                    FROM comment c
+                    JOIN answer a ON a.id = c.answer_id
+                    WHERE c.id = %(comment_id)s;                 
+                    """, {'comment_id':comment_id})
     return cursor.fetchone()['question_id']
-
-
 
 # @connection.connection_handler
 # def get_tags_by_question_id(cursor, question_id):

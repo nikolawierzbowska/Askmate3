@@ -26,7 +26,7 @@ def list_questions():
         return flask.render_template("list.html", questions=questions)
 
 
-@app.route('/question/<int:question_id>')
+@app.route('/question/<question_id>')
 def print_question(question_id):
     data_manager.view_question_dm(question_id)
     question = data_manager.get_question_data_by_id_dm(question_id)
@@ -60,19 +60,19 @@ def add_answer(question_id):
         return flask.render_template('add_answer.html', question_id=question_id)
 
 
-@app.route('/question/<int:question_id>/delete')
+@app.route('/question/<question_id>/delete')
 def delete_question(question_id):
     data_manager.delete_question_dm(question_id)
     return flask.redirect('/list')
 
 
-@app.route('/answer/<int:answer_id>/delete')
+@app.route('/answer/<answer_id>/delete')
 def delete_answer(answer_id):
     question_id = data_manager.delete_answer_by_id(answer_id)
     return flask.redirect(f'/question/{question_id}')
 
 
-@app.route('/question/<int:question_id>/edit', methods=['GET', 'POST'])
+@app.route('/question/<question_id>/edit', methods=['GET', 'POST'])
 def edit_question(question_id):
     delete_image = None
     question = data_manager.get_question_data_by_id_dm(question_id)
@@ -121,13 +121,13 @@ def vote_down_questions(question_id):
         return flask.redirect('/list')
 
 
-@app.route('/answer/<int:answer_id>/vote_up')
+@app.route('/answer/<answer_id>/vote_up')
 def vote_up_answers(answer_id):
     question_id = data_manager.vote_on_answer_dm(answer_id, "up")
     return flask.redirect(f'/question/{question_id}')
 
 
-@app.route('/answer/<int:answer_id>/vote_down')
+@app.route('/answer/<answer_id>/vote_down')
 def vote_down_answers(answer_id):
     question_id = data_manager.vote_on_answer_dm(answer_id, "down")
     return flask.redirect(f'/question/{question_id}')
@@ -139,7 +139,7 @@ def edit_comment_to_question(question_id):
     pass
 
 
-@app.route('/question/<int:question_id>/new_comment', methods=['GET', 'POST'])
+@app.route('/question/<question_id>/new_comment', methods=['GET', 'POST'])
 def add_comment_to_question(question_id):
     if flask.request.method == 'POST':
         new_comment = flask.request.form['message']
@@ -156,17 +156,30 @@ def add_comment_to_answer(answer_id):
         question_id = data_manager.add_comment_to_answer_dm(answer_id, message)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
-        return flask.render_template('add_comment.html', answer_id=answer_id)
+        return flask.render_template('add_comment_to_answer.html', answer_id=answer_id)
 
 
 @app.route('/comments/<comment_id>/delete')
 def delete_comments(comment_id):
-    question_id =data_manager.delete_comment_dm(comment_id)
+    if flask.request.args.get("data") == "answer":
+        question_id = data_manager.get_question_id_to_comment(comment_id)
+        data_manager.delete_comment_dm(comment_id)
+    else:
+        question_id =data_manager.delete_comment_dm(comment_id)
+    # if question_id is None:
+
     return flask.redirect(f'/question/{question_id}')
 
 
 
-#
+# @app.route('/comment/<comment_id>/edit', methods=['GET', 'POST'])
+# def edit_comments(comment_id):
+
+
+
+
+
+
 #     @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
 # def edit_answer(answer_id):
 #     answer = data_manager.get_answer_data_by_id_dm(answer_id)
