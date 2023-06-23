@@ -183,6 +183,18 @@ def search():
         return flask.redirect('/')
 
 
+@app.route('/question/<question_id>/delete_image')
+def delete_image_to_question(question_id):
+    data_manager.delete_image_from_question(question_id)
+    return flask.redirect(f'/question/{question_id}')
+
+
+@app.route('/answer/<answer_id>/delete_image')
+def delete_image_to_answer(answer_id):
+    question_id = data_manager.delete_image_from_answer(answer_id)
+    return flask.redirect(f'/question/{question_id}')
+
+
 # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
 # def edit_answer(answer_id):
 #     answer = data_manager.get_answer_data_by_id_dm(answer_id)

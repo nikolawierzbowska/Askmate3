@@ -119,15 +119,15 @@
                     {% if question['image'] %}
                         <img src="../{{ question['image'] }}" alt="Question Image" style="max-width: 150px;">
                         <div class="del_img small-icon">
-                                <a href="/question/{{ question_id }}/delete_image">
+                                <a href="/question/{{ question.id }}/delete_image">
                                     <button type="button" id="remove_image" name="">&#10060;</button>
                                 </a>
                             </div>
                     {% endif %}
                 </span>
-        </td>
-    </tr>
-</table>
+            </td>
+        </tr>
+    </table>
 <div class="buttons">
     <p>
         <a href="/list">
@@ -244,18 +244,20 @@
                     </table>
 
                 </td>
-                <td>
-                    <div class="remove_img">
-                        {% if answer.image %}
-                            <img src="../{{ answer.image }}" alt="Answer Image" style="max-width: 150px;">
-                            <div class="del_img small-icon">
+            <td>
+                <div class="remove_img">
+                    {% if answer.image %}
+                        <img src="../{{ answer.image }}" alt="Answer Image" style="max-width: 150px;">
+                        <div class="del_img small-icon">
+                            <a href="/answer/{{ answer.id }}/delete_image">
                                 <button type="button" id="remove_image" name="">&#10060;</button>
-                            </div>
-                        {% endif %}
-                    </div>
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
 </body>
 </html>
