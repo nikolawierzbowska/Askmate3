@@ -226,10 +226,11 @@ def edit_comment_dm(cursor, question_id, message):
 @connection.connection_handler
 def get_comments_to_answers_dm(cursor, question_id):
     cursor.execute("""
-                    SELECT *
+                    SELECT c.answer_id, c.message, c.submission_time, edited_count
                     FROM comment c
                     JOIN answer a on c.answer_id = a.id
                     WHERE a.question_id = %(question_id)s
+                    ORDER BY submission_time DESC
                     """, {'question_id': question_id})
     return cursor.fetchall()
 
@@ -271,17 +272,36 @@ def get_tags_by_question_id(cursor, question_id):
                         """, {'question_id': question_id})
     tags = cursor.fetchall()
     return tags
-#
-# @connection.connection_handler
-# def add_tags_to_question_dm(cursor, question_id, tags):
-#         cursor.execute("""
-#         INSERT INTO tag (name)
-#         SELECT DISTINCT tag_name
-#         FROM (VALUES ('tag1'), ('tag2'), ('tag3')) AS tags(tag_name)
-#         WHERE tag_name NOT IN (
-#             SELECT name
-#             FROM tag);
-#             """, {'question_id': question_id,
-#                   'tag':tag})
-#     tags = cursor.fetchall()
-#     return tags
+
+
+@connection.connection_handler
+def get_question_id_by_answer_id(cursor, answer_id):
+    cursor.execute("""
+                    SELECT question_id
+                    FROM answer
+                    WHERE id = %(answer_id)s;
+                        """, {'answer_id': answer_id})
+    question_id = cursor.fetchone()['question_id']
+    return question_id
+
+
+@connection.connection_handler
+def add_tags_dm(cursor, question_id, tags):
+    for tag in tags:
+        cursor.execute("""
+                        INSERT INTO tag (name)
+                        SELECT %(tag)s
+                        WHERE NOT EXISTS
+                            (SELECT 1
+                             FROM tag
+                             WHERE name = %(tag)s);
+                        
+                        INSERT INTO question_tag (question_id, tag_id)
+                        SELECT %(question_id)s, t.id
+                        FROM tag t
+                        WHERE t.name = %(tag)s
+                        AND NOT EXISTS
+                            (SELECT 1
+                             FROM question_tag
+                             WHERE question_id = %(question_id)s AND tag_id = t.id);
+                        """, {'question_id': question_id, 'tag': tag})

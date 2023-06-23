@@ -5,6 +5,9 @@
     <title>Add new comment</title>
 </head>
 <body>
+<a href="/question/{{ question_id }}">
+    <button>Go back</button>
+</a>
 <h2> Add new comment:</h2>
 
 <form action="/question/{{ question_id }}/new_comment" method="POST" enctype="multipart/form-data">

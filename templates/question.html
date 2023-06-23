@@ -105,10 +105,13 @@
             </td>
             <td>
                 {{ question['message'] }}<br><br>
-                <i>Tags: </i>
-                {% for tag in tags %}
-                    <button>{{ tag.name }}</button>
-                {% endfor %}
+                {% if tags|length > 0 %}
+                    <i>Tags: </i>
+                    {% for tag in tags %}
+                        <button>{{ tag.name }}</button>
+                    {% endfor %}
+                {% endif %}
+
             </td>
             <td>
                 <span class="remove_img">
@@ -150,6 +153,11 @@
     <p>
         <a href='/question/{{ question.id }}/new_comment'>
             <button>Add comment to question</button>
+        </a>
+    </p>
+    <p>
+        <a href='/question/{{ question.id }}/new_tag'>
+            <button>Add tag</button>
         </a>
     </p>
 </div>

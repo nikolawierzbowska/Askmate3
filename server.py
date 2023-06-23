@@ -5,9 +5,6 @@ import data_manager
 
 app = Flask(__name__)
 
-# TODO Add comment to answer (partly done)
-# TODO tag question
-
 
 @app.route('/')
 def main_page():
@@ -144,7 +141,7 @@ def edit_comment_to_question(question_id):
 def add_comment_to_question(question_id):
     if flask.request.method == 'POST':
         new_comment = flask.request.form['message']
-        data_manager.add_comment_to_answer_dm(question_id, new_comment)
+        data_manager.add_comment_question(question_id, new_comment)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
         return flask.render_template('add_comment_to_question.html', question_id=question_id)
@@ -157,7 +154,23 @@ def add_comment_to_answer(answer_id):
         question_id = data_manager.add_comment_to_answer_dm(answer_id, message)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
-        return flask.render_template('add_comment.html', answer_id=answer_id)
+        question_id = data_manager.get_question_id_by_answer_id(answer_id)
+        return flask.render_template('add_comment_to answer.html', answer_id=answer_id, question_id=question_id)
+
+
+@app.route('/question/<question_id>/new_tag', methods=['GET', 'POST'])
+def add_tag(question_id):
+    if flask.request.method == 'POST':
+        tags = flask.request.form.getlist('tags')
+        new_tag = flask.request.form.get('new_tag_check_box')
+        if new_tag:
+            new_tag_name = flask.request.form.get('new_tag_name')
+            tags.append(new_tag_name)
+        data_manager.add_tags_dm(question_id, tags)
+        return flask.redirect(f'/question/{question_id}')
+    elif flask.request.method == 'GET':
+        tags = data_manager.get_tags()
+        return flask.render_template('add_tag.html', tags=tags, question_id=question_id)
 
 
 # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
