@@ -1,46 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Add tags</title>
-  <style>
-    .button-select {
-      display: inline-block;
-      overflow: hidden;
-    }
-
-    .button-select button {
-      border: 1px solid #ccc;
-      background-color: #f5f5f5;
-      color: #333;
-      padding: 5px 10px;
-      margin: 2px;
-      cursor: pointer;
-    }
-
-    .button-select button.active {
-      background-color: #007bff;
-      color: #fff;
-    }
-
-    .button-select select {
-      display: none;
-    }
-  </style>
+    <title>Add Tags</title>
+    <style>
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+    </style>
 </head>
 <body>
-  <div class="button-select">
-      <label for="tags"></label>
-      <select name="tags" id="tags" multiple="multiple">
-          {% for tag in tags %}
-        <option value="{{ tag.id }}"> {{ tag.name }} </option>
-    </select>
-    <div id="button-group">
-          {% for tag in tags %}
-        <button type="button" value="{{ tag.value }}" >
-          {{ tag.name }}
-        </button>
-      {% endfor %}
-    </div>
-  </div>
+<a href="/question/{{ question_id }}">
+    <button>Go back</button>
+</a>
+
+<form action="/question/{{ question_id }}/new_tag" method="POST">
+    <h1>Add Tags</h1>
+    <ul>
+        {% for tag in tags %}
+            <li>
+                <label>
+                    <input type="checkbox" name="tags" value="{{ tag.id }}">
+                    {{ tag.name }}
+                </label>
+            </li>
+        {% endfor %}
+        <li>
+            <label>
+                <input type="checkbox" name="new_tag_check_box" value="true">
+                ADD Tag:
+                <input type="text" name="new_tag_name">
+            </label>
+        </li>
+    </ul>
+    <br>
+    <button type="submit">Submit</button>
+</form>
 </body>
 </html>
