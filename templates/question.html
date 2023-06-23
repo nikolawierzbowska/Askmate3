@@ -54,7 +54,7 @@
         .edit-delete-buttons {
             position: absolute;
             top: 0;
-            right: -10px;
+            right: -5px;
             display: flex;
             flex-direction: row-reverse;
         }
@@ -163,10 +163,10 @@
                 {{ comment.message }}
 
                  <span class="edit-delete-buttons small-icon">
-                        <a href='/comment/{{ comment_id }}/delete'>
+                        <a href='/comments/{{ comment.id }}/delete'>
                             <button type="button" id="remove_comment" name="">&#10060;</button>
                         </a>
-                        <a href='/comment/{{ comment_id }}/edit'>
+                        <a href='/comment/{{ comment.id }}/edit'>
                             <button type="button" id="edit_comment" name="">&#9998;</button>
                         </a>
                     </span>

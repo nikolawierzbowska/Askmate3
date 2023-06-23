@@ -248,6 +248,17 @@ def add_comment_to_answer_dm(cursor, answer_id, message):
     question_id = cursor.fetchone()['question_id']
     return question_id
 
+@connection.connection_handler
+def delete_comment_dm(cursor,comment_id):
+    cursor.execute("""
+                    DELETE FROM comment
+                    WHERE id = %(comment_id)s
+                    RETURNING question_id 
+                    """,{'comment_id':comment_id})
+    return cursor.fetchone()['question_id']
+
+
+
 # @connection.connection_handler
 # def get_tags_by_question_id(cursor, question_id):
 #     cursor.execute("""

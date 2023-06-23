@@ -158,6 +158,14 @@ def add_comment_to_answer(answer_id):
     elif flask.request.method == 'GET':
         return flask.render_template('add_comment.html', answer_id=answer_id)
 
+
+@app.route('/comments/<comment_id>/delete')
+def delete_comments(comment_id):
+    question_id =data_manager.delete_comment_dm(comment_id)
+    return flask.redirect(f'/question/{question_id}')
+
+
+
 #
 #     @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
 # def edit_answer(answer_id):
