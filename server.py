@@ -143,7 +143,7 @@ def edit_comment_to_question(question_id):
 def add_comment_to_question(question_id):
     if flask.request.method == 'POST':
         new_comment = flask.request.form['message']
-        data_manager.add_comment_dm(question_id,new_comment)
+        data_manager.add_comment_question(question_id,new_comment)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
         return flask.render_template('add_comment_to_question.html', question_id=question_id)
@@ -158,8 +158,8 @@ def add_comment_to_answer(answer_id):
     elif flask.request.method == 'GET':
         return flask.render_template('add_comment.html', answer_id=answer_id)
 
-      
-    # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
+#
+#     @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
 # def edit_answer(answer_id):
 #     answer = data_manager.get_answer_data_by_id_dm(answer_id)
 #     if flask.request.method == 'GET':
@@ -176,7 +176,7 @@ def add_comment_to_answer(answer_id):
 #             image_path = answer[IMAGE - 1]
 #             data_manager.update_answer_dm(answer[ID], message, image_path, answer[ID + 3])
 #         return flask.redirect(f'/question/{answer[ID + 3]}')
-      
+#
 
 if __name__ == '__main__':
     app.run(debug=True)
