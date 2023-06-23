@@ -20,10 +20,10 @@ def get_sorted_questions(cursor, order_by, order_direction):
 @connection.connection_handler
 def get_question_data_by_id_dm(cursor, question_id):
     cursor.execute("""
-        SELECT *
-        FROM question
-        WHERE id = %(question_id)s;
-        """, {'question_id': question_id})
+                    SELECT *
+                    FROM question
+                    WHERE id = %(question_id)s;
+                    """, {'question_id': question_id})
     return cursor.fetchone()
 
 
@@ -65,11 +65,6 @@ def add_question_dm(cursor, title, message, image_file):
                     'image': image_path})
     new_question_id = cursor.fetchone()['id']
     return new_question_id
-
-
-@connection.connection_handler
-def edit_comment_dm(cursor,question_id, message):
-    pass
 
 
 @connection.connection_handler
@@ -149,6 +144,7 @@ def delete_answer_by_id(cursor, answer_id):
 
 
 # TODO ADDITIONAL add date of edition
+# Fixme: deleting image file
 @connection.connection_handler
 def update_question_dm(cursor, title, message, old_image_path, new_image_file, question_id, remove_image):
     new_image_path = None
@@ -231,7 +227,7 @@ def edit_comment_dm(cursor, question_id, message):
 @connection.connection_handler
 def get_comments_to_answers_dm(cursor, question_id):
     cursor.execute("""
-                    SELECT c.id, c.answer_id, c.message, c.submission_time, edited_count
+                    SELECT c.answer_id, c.message, c.submission_time, edited_count
                     FROM comment c
                     JOIN answer a on c.answer_id = a.id
                     WHERE a.question_id = %(question_id)s
@@ -258,7 +254,7 @@ def add_comment_to_answer_dm(cursor, answer_id, message):
 
 
 @connection.connection_handler
-def delete_comment_dm(cursor,comment_id):
+def delete_comment_dm(cursor, comment_id):
     cursor.execute("""
                     DELETE FROM comment
                     WHERE id = %(comment_id)s
@@ -268,6 +264,7 @@ def delete_comment_dm(cursor,comment_id):
     question_id = cursor.fetchone()["question_id"]
     return question_id
 
+
 @connection.connection_handler
 def get_question_id_to_comment(cursor, comment_id):
     cursor.execute("""
@@ -275,7 +272,7 @@ def get_question_id_to_comment(cursor, comment_id):
                     FROM comment c
                     JOIN answer a ON a.id = c.answer_id
                     WHERE c.id = %(comment_id)s;                 
-                    """, {'comment_id':comment_id})
+                    """, {'comment_id': comment_id})
     return cursor.fetchone()['question_id']
 
 
@@ -369,3 +366,24 @@ def get_questions_by_search_phrase(cursor, search_phrase):
         if row['answer_message']:
             questions[-1]['answers'].append(row['answer_message'])
     return questions
+
+
+@connection.connection_handler
+def delete_image_from_answer(cursor, answer_id):
+    cursor.execute("""
+                    UPDATE answer
+                    SET image = Null
+                    WHERE id = %(answer_id)s
+                    RETURNING question_id;
+                        """, {'answer_id': answer_id})
+    question_id = cursor.fetchone()['question_id']
+    return question_id
+
+
+@connection.connection_handler
+def delete_image_from_question(cursor, question_id):
+    cursor.execute("""
+                    UPDATE question
+                    SET image = Null
+                    WHERE id = %(question_id)s;
+                        """, {'question_id': question_id})

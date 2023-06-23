@@ -264,13 +264,15 @@
         {% endfor %}
     </table>
 
-            </td>
+                </td>
             <td>
                 <div class="remove_img">
                     {% if answer.image %}
                         <img src="../{{ answer.image }}" alt="Answer Image" style="max-width: 150px;">
                         <div class="del_img small-icon">
-                            <button type="button" id="remove_image" name="">&#10060;</button>
+                            <a href="/answer/{{ answer.id }}/delete_image">
+                                <button type="button" id="remove_image" name="">&#10060;</button>
+                            </a>
                         </div>
                     {% endif %}
                 </div>
