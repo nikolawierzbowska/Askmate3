@@ -1,7 +1,7 @@
 import flask
 from flask import Flask
-import data_manager
 
+import data_manager
 
 app = Flask(__name__)
 
@@ -178,21 +178,21 @@ def search():
     search_phrase = flask.request.args.get('q')
     if search_phrase:
         questions = data_manager.get_questions_by_search_phrase(search_phrase)
-        for question in questions:
-            question['title'] = highlight_search_phrase(question['title'], search_phrase)
-            question['message'] = highlight_search_phrase(question['message'], search_phrase)
-            question['answers'] = [highlight_search_phrase(answer, search_phrase) for answer in question['answers']]
-        return flask.render_template('search.html', questions=questions, search_phrase=search_phrase)
+        return flask.render_template('search.html', questions=questions)
     else:
         return flask.redirect('/')
 
 
-@app.template_filter('highlight_search_phrase')
-def highlight_search_phrase(value, search_phrase):
-    if search_phrase:
-        highlighted_value = value.replace(search_phrase, f'<span class="highlight" style="background-color:lightgreen;">{search_phrase}</span>')
-        return highlighted_value
-    return value
+@app.route('/question/<question_id>/delete_image')
+def delete_image_to_question(question_id):
+    data_manager.delete_image_from_question(question_id)
+    return flask.redirect(f'/question/{question_id}')
+
+
+@app.route('/answer/<answer_id>/delete_image')
+def delete_image_to_answer(answer_id):
+    question_id = data_manager.delete_image_from_answer(answer_id)
+    return flask.redirect(f'/question/{question_id}')
 
 
 # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
