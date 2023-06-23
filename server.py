@@ -120,13 +120,13 @@ def vote_down_questions(question_id):
         return flask.redirect('/list')
 
 
-@app.route('/answer/<answer_id>/vote_up')
+@app.route('/answer/<int:answer_id>/vote_up')
 def vote_up_answers(answer_id):
     question_id = data_manager.vote_on_answer_dm(answer_id, "up")
     return flask.redirect(f'/question/{question_id}')
 
 
-@app.route('/answer/<answer_id>/vote_down')
+@app.route('/answer/<int:answer_id>/vote_down')
 def vote_down_answers(answer_id):
     question_id = data_manager.vote_on_answer_dm(answer_id, "down")
     return flask.redirect(f'/question/{question_id}')
