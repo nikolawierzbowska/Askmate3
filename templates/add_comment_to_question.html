@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add new comment</title>
+</head>
+<body>
+<a href="/question/{{ question_id }}">
+    <button>Go back</button>
+</a>
+<h2> Add new comment:</h2>
+
+<form action="/question/{{ question_id }}/new_comment" method="POST" enctype="multipart/form-data">
+    <div>
+        <p><label for="message"><textarea id="message" name="message" rows="5" cols="100" required></textarea></label>
+        </p>
+    </div>
+
+    <div>
+        <input type="submit" value="Submit">
+    </div>
+</form>
+
+
+</body>
+</html>

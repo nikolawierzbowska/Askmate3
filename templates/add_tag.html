@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Add Tags</title>
+    <style>
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<a href="/question/{{ question_id }}">
+    <button>Go back</button>
+</a>
+
+<form action="/question/{{ question_id }}/new_tag" method="POST">
+    <h1>Add Tags</h1>
+    <ul>
+        {% for tag in tags %}
+            <li>
+                <label>
+                    <input type="checkbox" name="tags" value="{{ tag.id }}">
+                    {{ tag.name }}
+                </label>
+            </li>
+        {% endfor %}
+        <li>
+            <label>
+                <input type="checkbox" name="new_tag_check_box" value="true">
+                ADD Tag:
+                <input type="text" name="new_tag_name">
+            </label>
+        </li>
+    </ul>
+    <br>
+    <button type="submit">Submit</button>
+</form>
+</body>
+</html>

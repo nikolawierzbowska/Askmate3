@@ -7,13 +7,13 @@ def get_sorted_questions(cursor, order_by, order_direction):
     order = 'ASC' if order_direction.upper() == 'ASC' else 'DESC'
     order_columns = ['submission_time', 'view_number', 'vote_number', 'number_of_answers', 'title', 'message']
     if order_by not in order_columns:
-        raise Exception('SQL injection not possible:)')
+        raise Exception('Wrong order by query.')
     cursor.execute(f"""
-                    SELECT *, (SELECT count(id) FROM answer a WHERE q.id = a.question_id)
-                    AS number_of_answers
+                    SELECT *,
+                    (SELECT COUNT(id) FROM answer a WHERE q.id = a.question_id) AS number_of_answers
                     FROM question q
                     ORDER BY {order_by} {order};
-                     """)
+                    """)
     return cursor.fetchall()
 
 
@@ -32,7 +32,8 @@ def view_question_dm(cursor, question_id):
     cursor.execute("""
                     UPDATE question 
                     SET view_number = view_number + 1
-                    WHERE id = {};""".format(question_id))
+                    WHERE id = %(question_id)s;
+                    """, {'question_id': question_id})
 
 
 @connection.connection_handler
@@ -53,9 +54,9 @@ def add_question_dm(cursor, title, message, image_file):
     if image_file.filename != '':
         image_path = util.save_image(image_file)
     cursor.execute("""
-        INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
-        VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
-        RETURNING id;""",
+                    INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
+                    VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
+                    RETURNING id;""",
                    {'submission_time': submission_time,
                     'vote_number': 0,
                     'view_number': 0,
@@ -92,16 +93,16 @@ def delete_question_dm(cursor, question_id):
                     (SELECT answer_id
                     FROM answer
                     WHERE question_id = %(question_id)s);
-
+            
                     DELETE FROM answer
                     WHERE question_id = %(question_id)s;
-
+            
                     DELETE FROM comment
                     WHERE question_id = %(question_id)s;
-
+            
                     DELETE FROM question_tag
                     WHERE question_id = %(question_id)s;
-
+            
                     DELETE FROM question
                     WHERE id = %(question_id)s;
                     """,
@@ -144,7 +145,7 @@ def delete_answer_by_id(cursor, answer_id):
     return question_id
 
 
-# TODO solution in connection, without changing time. additionally: add date of edition
+# TODO ADDITIONAL add date of edition
 @connection.connection_handler
 def update_question_dm(cursor, title, message, old_image_path, new_image_file, question_id, remove_image):
     new_image_path = None
@@ -201,6 +202,122 @@ def vote_on_answer_dm(cursor, answer_id, vote_direction):
 
 
 @connection.connection_handler
+def get_comments_by_question_id_dm(cursor, question_id):
+    cursor.execute("""
+                    SELECT *
+                    FROM comment
+                    WHERE question_id = %(question_id)s
+                    ORDER BY submission_time DESC;
+                    """, {'question_id': question_id})
+    return cursor.fetchall()
+
+
+@connection.connection_handler
+def add_comment_question(cursor, question_id, message):
+    submission_time = util.get_time()
+    cursor.execute("""
+                    INSERT INTO comment(question_id, message,submission_time)
+                    VALUES (%(question_id)s, %(message)s, %(submission_time)s);
+                    """, {'question_id': question_id,
+                          'message': message,
+                          'submission_time': submission_time})
+
+
+@connection.connection_handler
+def edit_comment_dm(cursor, question_id, message):
+    pass
+
+
+@connection.connection_handler
+def get_comments_to_answers_dm(cursor, question_id):
+    cursor.execute("""
+                    SELECT c.id, c.answer_id, c.message, c.submission_time, edited_count
+                    FROM comment c
+                    JOIN answer a on c.answer_id = a.id
+                    WHERE a.question_id = %(question_id)s
+                    ORDER BY submission_time DESC
+                    """,
+                   {'question_id': question_id})
+    return cursor.fetchall()
+
+
+@connection.connection_handler
+def add_comment_to_answer_dm(cursor, answer_id, message):
+    submission_time = util.get_time()
+    cursor.execute("""
+                    INSERT INTO comment(answer_id, message, submission_time)
+                    VALUES (%(answer_id)s, %(message)s, %(submission_time)s);
+                    
+                    SELECT question_id
+                    FROM answer
+                    WHERE id = %(answer_id)s;
+                    """,
+                   {'answer_id': answer_id,
+                    'message': message,
+                    'submission_time': submission_time})
+    question_id = cursor.fetchone()['question_id']
+    return question_id
+
+
+@connection.connection_handler
+def get_tags(cursor):
+    cursor.execute("""
+                    SELECT *
+                    FROM tag;
+                        """)
+    tags = cursor.fetchall()
+    return tags
+
+
+@connection.connection_handler
+def get_tags_by_question_id(cursor, question_id):
+    cursor.execute("""
+                    SELECT t.id, t.name
+                    FROM tag t
+                    JOIN question_tag q on q.tag_id = t.id
+                    WHERE q.question_id = %(question_id)s;
+                    """,
+                   {'question_id': question_id})
+    tags = cursor.fetchall()
+    return tags
+
+
+@connection.connection_handler
+def get_question_id_by_answer_id(cursor, answer_id):
+    cursor.execute("""
+                    SELECT question_id
+                    FROM answer
+                    WHERE id = %(answer_id)s;
+                    """,
+                   {'answer_id': answer_id})
+    question_id = cursor.fetchone()['question_id']
+    return question_id
+
+
+@connection.connection_handler
+def add_tags_dm(cursor, question_id, tags):
+    for tag in tags:
+        cursor.execute("""
+                        INSERT INTO tag (name)
+                        SELECT %(tag)s
+                        WHERE NOT EXISTS
+                            (SELECT 1
+                             FROM tag
+                             WHERE name = %(tag)s);
+                        
+                        INSERT INTO question_tag (question_id, tag_id)
+                        SELECT %(question_id)s, t.id
+                        FROM tag t
+                        WHERE t.name = %(tag)s
+                        AND NOT EXISTS
+                            (SELECT 1
+                             FROM question_tag
+                             WHERE question_id = %(question_id)s AND tag_id = t.id);
+                        """,
+                       {'question_id': question_id, 'tag': tag})
+
+
+@connection.connection_handler
 def get_questions_by_search_phrase(cursor, search_phrase):
     search_pattern = f"%{search_phrase}%"
     cursor.execute("""
@@ -212,7 +329,8 @@ def get_questions_by_search_phrase(cursor, search_phrase):
                       OR q.message ILIKE %(search_pattern)s
                       OR a.message ILIKE %(search_pattern)s
                     ORDER BY q.id DESC, q.submission_time DESC;
-                    """, {'search_pattern': search_pattern})
+                    """,
+                   {'search_pattern': search_pattern})
     rows = cursor.fetchall()
     questions = []
     for row in rows:
@@ -231,5 +349,3 @@ def get_questions_by_search_phrase(cursor, search_phrase):
         if row['answer_message']:
             questions[-1]['answers'].append(row['answer_message'])
     return questions
-
-
