@@ -1,8 +1,6 @@
 import flask
 from flask import Flask
 import data_manager
-import util
-import os
 
 
 app = Flask(__name__)
@@ -10,10 +8,9 @@ app = Flask(__name__)
 
 @app.route('/')
 def main_page():
-    return flask.redirect("/list")
+    return flask.render_template("main.html")
 
 
-# TODO domyślny order by, psuje się przy wracaniu z question
 @app.route('/list')
 def list_questions():
     order_by = flask.request.args.get('order_by')
@@ -40,10 +37,7 @@ def add_question():
         title = flask.request.form['title']
         message = flask.request.form['message']
         image_file = flask.request.files['image']
-        image_path = None
-        if 'image' in flask.request.files and image_file.filename != '':
-            image_path = util.save_image_dm(image_file)
-        new_question_id = data_manager.add_question_dm({'title': title, 'message': message, 'image': image_path})
+        new_question_id = data_manager.add_question_dm(title, message, image_file)
         return flask.redirect(f'/question/{new_question_id}')
     else:
         return flask.render_template('add_question.html')
@@ -54,10 +48,7 @@ def add_answer(question_id):
     if flask.request.method == 'POST':
         message = flask.request.form['message']
         image_file = flask.request.files['image']
-        image_path = None
-        if 'image' in flask.request.files and image_file.filename != '':
-            image_path = util.save_image_dm(image_file)
-        data_manager.add_answer_dm({'message': message, 'question_id': question_id, 'image': image_path})
+        data_manager.add_answer_dm(message, question_id, image_file)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
         return flask.render_template('add_answer.html', question_id=question_id)
@@ -128,6 +119,16 @@ def vote_up_answers(answer_id):
 def vote_down_answers(answer_id):
     question_id = data_manager.vote_on_answer_dm(answer_id, "down")
     return flask.redirect(f'/question/{question_id}')
+
+
+@app.route('/search')
+def search():
+    search_phrase = flask.request.args.get('q')
+    if search_phrase:
+        questions = data_manager.get_questions_by_search_phrase(search_phrase)
+        return flask.render_template('search.html', questions=questions)
+    else:
+        return flask.redirect('/')
 
 
 if __name__ == "__main__":

@@ -1,4 +1,3 @@
-import csv
 import os
 
 import psycopg2
@@ -47,5 +46,3 @@ def connection_handler(function):
         connection.close()
         return ret_value
     return wrapper
-
-
