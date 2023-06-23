@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Search List</title>
+</head>
+
+<style>
+        table {
+            border-collapse: collapse;
+            width: 75%;
+            margin-right: 15px;
+            margin-left: auto;
+            margin-bottom: 50px;
+    }
+
+    th, td {
+        position: relative;
+        border: 1px solid black;
+        padding: 8px;
+        text-align: center;
+        align-items: center;
+    }
+
+    .header-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .sort-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        margin-left: 5px;
+    }
+
+    .sort-arrow a {
+        margin-left: 5px;
+    }
+
+    .vote {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .thumb {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        margin-left: 5px;
+
+    }
+
+    .thumb a {
+        margin-left: 5px;
+    }
+
+</style>
+
+<body>
+    <h1>Search Results</h1>
+    <p>
+        <a href="/list?order_by=submission_time&order_direction=desc">
+            <button>List of questions</button>
+        </a>
+    </p>
+    <p>
+        <a href="/">
+            <button>Main</button>
+        </a>
+    </p>
+
+    <table>
+        <thead>
+         <tr>
+                <th>
+                    <div class="header-cell">
+                        Submission Time
+                        <div class="sort-arrow">
+                            <a href="/list?order_by=submission_time&order_direction=asc">&#128316;</a>
+                            <a href="/list?order_by=submission_time&order_direction=desc">&#128317;</a>
+                        </div>
+                    </div>
+                </th>
+                <th>
+                    <div class="header-cell">
+                        Number of Views
+                        <div class="sort-arrow">
+                            <a href="/list?order_by=view_number&order_direction=asc">&#128316;</a>
+                            <a href="/list?order_by=view_number&order_direction=desc">&#128317;</a>
+                        </div>
+                    </div>
+                </th>
+                <th>
+                    <div class="header-cell">
+                        Votes
+                        <div class="sort-arrow">
+                            <a href="/list?order_by=vote_number&order_direction=asc">&#128316;</a>
+                            <a href="/list?order_by=vote_number&order_direction=desc">&#128317;</a>
+                        </div>
+                    </div>
+                </th>
+                <th>
+                    <div class="header-cell">
+                        Title
+                        <div class="sort-arrow">
+                            <a href="/list?order_by=title&order_direction=asc">&#128316;</a>
+                            <a href="/list?order_by=title&order_direction=desc">&#128317;</a>
+                        </div>
+                    </div>
+                </th>
+                <th>
+                    <div class="header-cell">
+                        Message
+                        <div class="sort-arrow">
+                            <a href="/list?order_by=message&order_direction=asc">&#128316;</a>
+                            <a href="/list?order_by=message&order_direction=desc">&#128317;</a>
+                        </div>
+                    </div>
+                </th>
+                <th>Answer</th>
+                <th>Image</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for question in questions %}
+            <tr>
+                <td>{{ question['submission_time'] }}</td>
+                <td>{{ question['view_number'] }}</td>
+                <td>
+                    <div class="vote">
+                        {{ question['vote_number'] }}
+                        <div class="thumb">
+                            <a href="/question/{{question['id']}}/vote_up">&#x1F44D;</a>
+                            <a href="/question/{{question['id']}}/vote_down">&#x1F44E;</a>
+                        </div>
+                    </div>
+                </td>
+                <td><a href="/question/{{ question['id'] }}">{{ question['title'] }}</a></td>
+                <td>{{ question['message'] }}</td>
+                <td>
+                    {% for answer in question['answers'] %}
+                        {{ answer }}<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if question['image'] %}
+                        <img src="{{ question['image'] }}" alt="Question Image" style="max-width: 50px;">
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

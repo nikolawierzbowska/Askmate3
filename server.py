@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def main_page():
-    return flask.redirect('/list')
+    return flask.render_template('main.html')
 
 
 @app.route('/list')
@@ -71,7 +71,7 @@ def delete_answer(answer_id):
     return flask.redirect(f'/question/{question_id}')
 
 
-@app.route('/question/<int:question_id>/edit', methods=['GET', 'POST'])
+@app.route('/question/<question_id>/edit', methods=['GET', 'POST'])
 def edit_question(question_id):
     delete_image = None
     question = data_manager.get_question_data_by_id_dm(question_id)
@@ -137,7 +137,7 @@ def edit_comment_to_question(question_id):
     pass
 
 
-@app.route('/question/<int:question_id>/new_comment', methods=['GET', 'POST'])
+@app.route('/question/<question_id>/new_comment', methods=['GET', 'POST'])
 def add_comment_to_question(question_id):
     if flask.request.method == 'POST':
         new_comment = flask.request.form['message']
@@ -171,6 +171,16 @@ def add_tag(question_id):
     elif flask.request.method == 'GET':
         tags = data_manager.get_tags()
         return flask.render_template('add_tag.html', tags=tags, question_id=question_id)
+
+
+@app.route('/search')
+def search():
+    search_phrase = flask.request.args.get('q')
+    if search_phrase:
+        questions = data_manager.get_questions_by_search_phrase(search_phrase)
+        return flask.render_template('search.html', questions=questions)
+    else:
+        return flask.redirect('/')
 
 
 # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
