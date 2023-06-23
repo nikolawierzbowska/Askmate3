@@ -155,7 +155,7 @@ def add_comment_to_answer(answer_id):
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
         question_id = data_manager.get_question_id_by_answer_id(answer_id)
-        return flask.render_template('add_comment_to answer.html', answer_id=answer_id, question_id=question_id)
+        return flask.render_template('add_comment_to_answer.html', answer_id=answer_id, question_id=question_id)
 
 
 @app.route('/question/<question_id>/new_tag', methods=['GET', 'POST'])
@@ -183,6 +183,16 @@ def search():
         return flask.redirect('/')
 
 
+@app.route('/comments/<comment_id>/delete')
+def delete_comments(comment_id):
+    if flask.request.args.get("data") == "answer":
+        question_id = data_manager.get_question_id_to_comment(comment_id)
+        data_manager.delete_comment_dm(comment_id)
+    else:
+        question_id = data_manager.delete_comment_dm(comment_id)
+    return flask.redirect(f'/question/{question_id}')
+
+
 @app.route('/question/<question_id>/delete_image')
 def delete_image_to_question(question_id):
     data_manager.delete_image_from_question(question_id)
@@ -195,7 +205,7 @@ def delete_image_to_answer(answer_id):
     return flask.redirect(f'/question/{question_id}')
 
 
-# @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
+    # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
 # def edit_answer(answer_id):
 #     answer = data_manager.get_answer_data_by_id_dm(answer_id)
 #     if flask.request.method == 'GET':
@@ -216,3 +226,6 @@ def delete_image_to_answer(answer_id):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
