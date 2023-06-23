@@ -144,6 +144,7 @@ def delete_answer_by_id(cursor, answer_id):
 
 
 # TODO ADDITIONAL add date of edition
+# Fixme: deleting image file
 @connection.connection_handler
 def update_question_dm(cursor, title, message, old_image_path, new_image_file, question_id, remove_image):
     new_image_path = None
@@ -250,33 +251,6 @@ def add_comment_to_answer_dm(cursor, answer_id, message):
                           'submission_time': submission_time})
     question_id = cursor.fetchone()['question_id']
     return question_id
-
-
-@connection.connection_handler
-def get_comments_by_question_id_dm(cursor, question_id):
-    cursor.execute("""
-                    SELECT *
-                    FROM comment
-                    WHERE question_id = %(question_id)s
-                    ORDER BY submission_time DESC;
-                    """, {'question_id': question_id})
-    return cursor.fetchall()
-
-
-@connection.connection_handler
-def add_comment_question(cursor, question_id, message):
-    submission_time = util.get_time()
-    cursor.execute("""
-                    INSERT INTO comment(question_id, message,submission_time)
-                    VALUES (%(question_id)s, %(message)s, %(submission_time)s);
-                    """, {'question_id': question_id,
-                          'message': message,
-                          'submission_time': submission_time})
-
-
-@connection.connection_handler
-def edit_comment_dm(cursor, question_id, message):
-    pass
 
 
 @connection.connection_handler
@@ -400,3 +374,24 @@ def get_questions_by_search_phrase(cursor, search_phrase):
         if row['answer_message']:
             questions[-1]['answers'].append(row['answer_message'])
     return questions
+
+
+@connection.connection_handler
+def delete_image_from_answer(cursor, answer_id):
+    cursor.execute("""
+                    UPDATE answer
+                    SET image = Null
+                    WHERE id = %(answer_id)s
+                    RETURNING question_id;
+                        """, {'answer_id': answer_id})
+    question_id = cursor.fetchone()['question_id']
+    return question_id
+
+
+@connection.connection_handler
+def delete_image_from_question(cursor, question_id):
+    cursor.execute("""
+                    UPDATE question
+                    SET image = Null
+                    WHERE id = %(question_id)s;
+                        """, {'question_id': question_id})
