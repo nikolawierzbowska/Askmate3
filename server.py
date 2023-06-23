@@ -1,7 +1,7 @@
 import flask
 from flask import Flask
-import data_manager
 
+import data_manager
 
 app = Flask(__name__)
 
@@ -33,8 +33,10 @@ def print_question(question_id):
     comments = data_manager.get_comments_by_question_id_dm(question_id)
     answers = data_manager.get_answers_by_question_id_dm(question_id)
     comments_to_answers = data_manager.get_comments_to_answers_dm(question_id)
+    tags = data_manager.get_tags_by_question_id(question_id)
     return flask.render_template('question.html', question=question, answers=answers,
-                                 comments_to_answers=comments_to_answers, comments=comments)
+                                 comments_to_answers=comments_to_answers, comments=comments,
+                                 tags=tags)
 
 
 @app.route('/add_question', methods=['GET', 'POST'])
@@ -133,7 +135,6 @@ def vote_down_answers(answer_id):
     return flask.redirect(f'/question/{question_id}')
 
 
-
 @app.route('/comment/<comment_id>/edit.', methods=['GET', 'POST'])
 def edit_comment_to_question(question_id):
     pass
@@ -143,7 +144,7 @@ def edit_comment_to_question(question_id):
 def add_comment_to_question(question_id):
     if flask.request.method == 'POST':
         new_comment = flask.request.form['message']
-        data_manager.add_comment_dm(question_id,new_comment)
+        data_manager.add_comment_to_answer_dm(question_id, new_comment)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
         return flask.render_template('add_comment_to_question.html', question_id=question_id)
@@ -158,8 +159,8 @@ def add_comment_to_answer(answer_id):
     elif flask.request.method == 'GET':
         return flask.render_template('add_comment.html', answer_id=answer_id)
 
-      
-    # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
+
+# @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
 # def edit_answer(answer_id):
 #     answer = data_manager.get_answer_data_by_id_dm(answer_id)
 #     if flask.request.method == 'GET':
@@ -180,6 +181,3 @@ def add_comment_to_answer(answer_id):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-
