@@ -196,7 +196,8 @@ def vote_on_answer_dm(cursor, answer_id, vote_direction):
                     END
                     WHERE id = %(answer_id)s
                     RETURNING question_id;
-                    """, {'answer_id': answer_id, 'vote_direction': vote_direction})
+                    """, {'answer_id': answer_id,
+                          'vote_direction': vote_direction})
     question_id = cursor.fetchone()['question_id']
     return question_id
 
@@ -231,7 +232,7 @@ def edit_comment_dm(cursor, question_id, message):
 @connection.connection_handler
 def get_comments_to_answers_dm(cursor, question_id):
     cursor.execute("""
-                    SELECT c. id, c.answer_id, c.message, c.submission_time, edited_count
+                    SELECT c.id, c.answer_id, c.message, c.submission_time, edited_count
                     FROM comment c
                     JOIN answer a on c.answer_id = a.id
                     WHERE a.question_id = %(question_id)s
@@ -269,14 +270,15 @@ def delete_comment_dm(cursor, comment_id):
 
 
 @connection.connection_handler
-def get_question_id_to_comment(cursor, comment_id):
+def get_question_id_to_comment_answer(cursor, comment_id):
     cursor.execute("""
                     SELECT a.question_id
                     FROM comment c
                     JOIN answer a ON a.id = c.answer_id
-                    WHERE c.id = %(comment_id)s;                 
+                    WHERE c.id = %(comment_id)s                 
                     """, {'comment_id': comment_id})
-    return cursor.fetchone()['question_id']
+    question_id = cursor.fetchone()["question_id"]
+    return question_id
 
 
 @connection.connection_handler
@@ -404,3 +406,45 @@ def delete_image_from_question(cursor, question_id):
                     WHERE id = %(question_id)s;
                         """, {'question_id': question_id})
     util.delete_image_files([image_path])
+
+
+@connection.connection_handler
+def get_comment_by_id(cursor, comment_id):
+    cursor.execute("""
+                    SELECT *
+                    FROM comment c
+                    WHERE id = %(comment_id)s
+                    """, {'comment_id': comment_id})
+    comment = cursor.fetchone()
+    return comment
+
+
+@connection.connection_handler
+def get_question_id_by_comment_question_or_answer(cursor, comment_id):
+    cursor.execute("""
+                    SELECT MAX(question_id) AS question_id
+                    FROM
+                    (SELECT c.question_id
+                    FROM comment c
+                    WHERE id = %(comment_id)s
+                    UNION DISTINCT
+                    SELECT a.question_id
+                    FROM comment c
+                    JOIN answer a ON a.id = c.answer_id
+                    WHERE c.id = %(comment_id)s
+                    )subquery;             
+                    """, {'comment_id': comment_id})
+    question_id = cursor.fetchone()["question_id"]
+    return question_id
+
+
+@connection.connection_handler
+def edit_comment_dm(cursor, comment_id, message):
+    submission_time = util.get_time()
+    cursor.execute("""
+                    UPDATE comment
+                    SET message = %(message)s, submission_time = %(submission_time)s, edited_count = edited_count+1
+                    WHERE id = %(comment_id)s
+                    """, {'comment_id': comment_id,
+                          "message": message,
+                          "submission_time": submission_time})
