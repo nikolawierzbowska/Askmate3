@@ -111,22 +111,22 @@
                     {% endfor %}
                 {% endif %}
 
-            </td>
+                  </td>
             <td>
                 <span class="remove_img">
 
                     {% if question['image'] %}
                         <img src="../{{ question['image'] }}" alt="Question Image" style="max-width: 150px;">
                         <div class="del_img small-icon">
-                                <a href="/question/{{ question_id }}/delete_image">
+                                <a href="/question/{{ question.id }}/delete_image">
                                     <button type="button" id="remove_image" name="">&#10060;</button>
                                 </a>
                             </div>
                     {% endif %}
                 </span>
-        </td>
-    </tr>
-</table>
+            </td>
+        </tr>
+    </table>
 <div class="buttons">
     <p>
         <a href="/list">
