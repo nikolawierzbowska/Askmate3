@@ -225,11 +225,6 @@ def add_comment_question(cursor, question_id, message):
 
 
 @connection.connection_handler
-def edit_comment_dm(cursor, question_id, message):
-    pass
-
-
-@connection.connection_handler
 def get_comments_to_answers_dm(cursor, question_id):
     cursor.execute("""
                     SELECT c.id, c.answer_id, c.message, c.submission_time, edited_count
