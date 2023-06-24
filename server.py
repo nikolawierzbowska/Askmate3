@@ -132,8 +132,6 @@ def vote_down_answers(answer_id):
     return flask.redirect(f'/question/{question_id}')
 
 
-
-
 @app.route('/question/<question_id>/new_comment', methods=['GET', 'POST'])
 def add_comment_to_question(question_id):
     if flask.request.method == 'POST':
@@ -180,13 +178,11 @@ def search():
         return flask.redirect('/')
 
 
+
 @app.route('/comments/<comment_id>/delete')
 def delete_comments(comment_id):
-    if flask.request.args.get("data") == "answer":
-        question_id = data_manager.get_question_id_to_comment_answer(comment_id)
-        data_manager.delete_comment_dm(comment_id)
-    else:
-        question_id = data_manager.delete_comment_dm(comment_id)
+    question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
+    data_manager.delete_comment_dm(comment_id)
     return flask.redirect(f'/question/{question_id}')
 
 
@@ -204,17 +200,15 @@ def delete_image_to_answer(answer_id):
 
 @app.route('/comment/<comment_id>/edit',methods =['GET', 'POST'])
 def edit_comment(comment_id):
-    if flask.request.method == 'GET':
-        comment = data_manager.get_comment_by_id(comment_id)
-        question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
-        return flask.render_template('edit_comments.html',comment =comment, question_id=question_id)
-    elif flask.request.method =='POST':
+    if flask.request.method =='POST':
         message = flask.request.form['message']
         data_manager.edit_comment_dm(comment_id,message)
         question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
         return flask.redirect(f'/question/{question_id}')
-
-
+    elif flask.request.method == 'GET':
+        comment = data_manager.get_comment_by_id(comment_id)
+        question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
+        return flask.render_template('edit_comments.html',comment =comment, question_id=question_id)
 
 
     # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
