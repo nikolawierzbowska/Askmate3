@@ -175,7 +175,7 @@
             <td>
                 <div class="cell-content cell-text">
                     {{ comment.message }}
-                    {% if comment.edited_count != 0 %}
+                    {% if comment.edited_count != None %}
                     <p>
                         <button name="number_of_edit"><strong> Number of editions: {{ comment.edited_count }}</strong>
                         </button>
@@ -258,7 +258,7 @@
                                     </div>
                                     <br>
                                     <i>{{ comment.submission_time }}</i>
-                                    {% if comment.edited_count != 0 %}
+                                    {% if comment.edited_count != None %}
                                     <p>
                                         <button name="number_of_edit"><strong> Number of
                                             editions: {{ comment.edited_count }}</strong></button>

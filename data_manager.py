@@ -18,7 +18,7 @@ def get_sorted_questions(cursor, order_by, order_direction):
 
 
 @connection.connection_handler
-def get_question_data_by_id_dm(cursor, question_id):
+def get_question_data_by_id(cursor, question_id):
     cursor.execute("""
                     SELECT *
                     FROM question
@@ -28,7 +28,7 @@ def get_question_data_by_id_dm(cursor, question_id):
 
 
 @connection.connection_handler
-def view_question_dm(cursor, question_id):
+def view_question(cursor, question_id):
     cursor.execute("""
                     UPDATE question 
                     SET view_number = view_number + 1
@@ -37,7 +37,7 @@ def view_question_dm(cursor, question_id):
 
 
 @connection.connection_handler
-def get_answers_by_question_id_dm(cursor, question_id):
+def get_answers_by_question_id(cursor, question_id):
     cursor.execute("""
                     SELECT *
                     FROM answer
@@ -48,7 +48,7 @@ def get_answers_by_question_id_dm(cursor, question_id):
 
 
 @connection.connection_handler
-def add_question_dm(cursor, title, message, image_file):
+def add_question(cursor, title, message, image_file):
     submission_time = util.get_time()
     image_path = util.save_image(image_file) if image_file.filename != '' else None
     cursor.execute("""
@@ -66,7 +66,7 @@ def add_question_dm(cursor, title, message, image_file):
 
 
 @connection.connection_handler
-def add_answer_dm(cursor, message, question_id, image_file):
+def add_answer(cursor, message, question_id, image_file):
     submission_time = util.get_time()
     image_path = util.save_image(image_file) if image_file.filename != '' else None
     cursor.execute("""
@@ -81,7 +81,7 @@ def add_answer_dm(cursor, message, question_id, image_file):
 
 
 @connection.connection_handler
-def delete_question_dm(cursor, question_id):
+def delete_question(cursor, question_id):
     image_paths = get_image_paths(question_id)
     cursor.execute("""
                     DELETE FROM comment
@@ -140,8 +140,8 @@ def delete_answer_by_id(cursor, answer_id):
 
 
 @connection.connection_handler
-def update_question_dm(cursor, title, message, question_id, remove_image,
-                       new_image_file=None):
+def update_question(cursor, title, message, question_id, remove_image,
+                    new_image_file=None):
     #  solution for removing pic when checkbox is 'on' or there is new pic uploaded
     if remove_image or new_image_file is not None:
         delete_image_from_question(question_id)
@@ -172,7 +172,7 @@ def update_image_in_question(cursor, question_id, image_path):
 
 
 @connection.connection_handler
-def vote_on_question_dm(cursor, question_id, vote_direction):
+def vote_on_question(cursor, question_id, vote_direction):
     cursor.execute("""
                     UPDATE question 
                     SET vote_number = CASE
@@ -186,7 +186,7 @@ def vote_on_question_dm(cursor, question_id, vote_direction):
 
 
 @connection.connection_handler
-def vote_on_answer_dm(cursor, answer_id, vote_direction):
+def vote_on_answer(cursor, answer_id, vote_direction):
     cursor.execute("""
                     UPDATE answer 
                     SET vote_number = CASE
@@ -203,7 +203,7 @@ def vote_on_answer_dm(cursor, answer_id, vote_direction):
 
 
 @connection.connection_handler
-def get_comments_by_question_id_dm(cursor, question_id):
+def get_comments_by_question_id(cursor, question_id):
     cursor.execute("""
                     SELECT *
                     FROM comment
@@ -217,16 +217,15 @@ def get_comments_by_question_id_dm(cursor, question_id):
 def add_comment_question(cursor, question_id, message):
     submission_time = util.get_time()
     cursor.execute("""
-                    INSERT INTO comment(question_id, message,submission_time, edited_count)
-                    VALUES (%(question_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
+                    INSERT INTO comment(question_id, message,submission_time)
+                    VALUES (%(question_id)s, %(message)s, %(submission_time)s);
                     """, {'question_id': question_id,
                           'message': message,
-                          'submission_time': submission_time,
-                          'edited_count': 0})
+                          'submission_time': submission_time})
 
 
 @connection.connection_handler
-def get_comments_to_answers_dm(cursor, question_id):
+def get_comments_of_answers(cursor, question_id):
     cursor.execute("""
                     SELECT c.id, c.answer_id, c.message, c.submission_time, edited_count
                     FROM comment c
@@ -238,25 +237,24 @@ def get_comments_to_answers_dm(cursor, question_id):
 
 
 @connection.connection_handler
-def add_comment_to_answer_dm(cursor, answer_id, message):
+def add_comment_to_answer(cursor, answer_id, message):
     submission_time = util.get_time()
     cursor.execute("""
-                    INSERT INTO comment(answer_id, message, submission_time, edited_count)
-                    VALUES (%(answer_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
+                    INSERT INTO comment(answer_id, message, submission_time)
+                    VALUES (%(answer_id)s, %(message)s, %(submission_time)s);
                     
                     SELECT question_id
                     FROM answer
                     WHERE id = %(answer_id)s;
                     """, {'answer_id': answer_id,
                           'message': message,
-                          'submission_time': submission_time,
-                          'edited_count': 0})
+                          'submission_time': submission_time})
     question_id = cursor.fetchone()['question_id']
     return question_id
 
 
 @connection.connection_handler
-def delete_comment_dm(cursor, comment_id):
+def delete_comment(cursor, comment_id):
     cursor.execute("""
                     DELETE FROM comment
                     WHERE id = %(comment_id)s
@@ -302,7 +300,7 @@ def get_question_id_by_answer_id(cursor, answer_id):
 
 
 @connection.connection_handler
-def add_tags_dm(cursor, question_id, tags):
+def add_tags(cursor, question_id, tags):
     for tag in tags:
         cursor.execute("""
                         INSERT INTO tag (name)
@@ -424,11 +422,14 @@ def get_question_id_by_comment_question_or_answer(cursor, comment_id):
 
 
 @connection.connection_handler
-def edit_comment_dm(cursor, comment_id, message):
+def edit_comment(cursor, comment_id, message):
     submission_time = util.get_time()
     cursor.execute("""
                     UPDATE comment
-                    SET message = %(message)s, submission_time = %(submission_time)s, edited_count = edited_count + 1
+                    SET 
+                    message = %(message)s, 
+                    submission_time = %(submission_time)s, 
+                    edited_count = COALESCE(edited_count, 0) + 1
                     WHERE id = %(comment_id)s
                     """, {'comment_id': comment_id,
                           "message": message,
