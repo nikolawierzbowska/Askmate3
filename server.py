@@ -1,7 +1,7 @@
 import flask
 from flask import Flask
-
 import data_manager
+
 
 app = Flask(__name__)
 
@@ -132,6 +132,9 @@ def vote_down_answers(answer_id):
     return flask.redirect(f'/question/{question_id}')
 
 
+@app.route('/comment/<comment_id>/edit.', methods=['GET', 'POST'])
+def edit_comment_to_question(question_id):
+    pass
 
 
 @app.route('/question/<question_id>/new_comment', methods=['GET', 'POST'])
@@ -175,9 +178,14 @@ def search():
     search_phrase = flask.request.args.get('q')
     if search_phrase:
         questions = data_manager.get_questions_by_search_phrase(search_phrase)
-        return flask.render_template('search.html', questions=questions)
+        for question in questions:
+            question['title'] = highlight_search_phrase(question['title'], search_phrase)
+            question['message'] = highlight_search_phrase(question['message'], search_phrase)
+            question['answers'] = [highlight_search_phrase(answer, search_phrase) for answer in question['answers']]
+        return flask.render_template('search.html', questions=questions, search_phrase=search_phrase)
     else:
         return flask.redirect('/')
+
 
 
 @app.route('/comments/<comment_id>/delete')
@@ -215,9 +223,15 @@ def edit_comment(comment_id):
         return flask.redirect(f'/question/{question_id}')
 
 
+@app.template_filter('highlight_search_phrase')
+def highlight_search_phrase(value, search_phrase):
+    if search_phrase:
+        highlighted_value = value.replace(search_phrase, f'<span class="highlight" style="background-color:lightgreen;">{search_phrase}</span>')
+        return highlighted_value
+    return value
 
 
-    # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
+# @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
 # def edit_answer(answer_id):
 #     answer = data_manager.get_answer_data_by_id_dm(answer_id)
 #     if flask.request.method == 'GET':
@@ -238,6 +252,3 @@ def edit_comment(comment_id):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-
