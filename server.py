@@ -22,13 +22,13 @@ def list_questions():
         return flask.render_template("list.html", questions=questions)
 
 
-@app.route('/question/<int:question_id>')
+@app.route('/question/<question_id>')
 def print_question(question_id):
-    data_manager.view_question_dm(question_id)
-    question = data_manager.get_question_data_by_id_dm(question_id)
-    comments = data_manager.get_comments_by_question_id_dm(question_id)
-    answers = data_manager.get_answers_by_question_id_dm(question_id)
-    comments_to_answers = data_manager.get_comments_to_answers_dm(question_id)
+    data_manager.view_question(question_id)
+    question = data_manager.get_question_data_by_id(question_id)
+    comments = data_manager.get_comments_by_question_id(question_id)
+    answers = data_manager.get_answers_by_question_id(question_id)
+    comments_to_answers = data_manager.get_comments_of_answers(question_id)
     tags = data_manager.get_tags_by_question_id(question_id)
     return flask.render_template('question.html', question=question, answers=answers,
                                  comments_to_answers=comments_to_answers, comments=comments,
@@ -41,7 +41,7 @@ def add_question():
         title = flask.request.form['title']
         message = flask.request.form['message']
         image_file = flask.request.files['image']
-        new_question_id = data_manager.add_question_dm(title, message, image_file)
+        new_question_id = data_manager.add_question(title, message, image_file)
         return flask.redirect(f'/question/{new_question_id}')
     else:
         return flask.render_template('add_question.html')
@@ -52,19 +52,19 @@ def add_answer(question_id):
     if flask.request.method == 'POST':
         message = flask.request.form['message']
         image_file = flask.request.files['image']
-        data_manager.add_answer_dm(message, question_id, image_file)
+        data_manager.add_answer(message, question_id, image_file)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
         return flask.render_template('add_answer.html', question_id=question_id)
 
 
-@app.route('/question/<int:question_id>/delete')
+@app.route('/question/<question_id>/delete')
 def delete_question(question_id):
-    data_manager.delete_question_dm(question_id)
+    data_manager.delete_question(question_id)
     return flask.redirect('/list')
 
 
-@app.route('/answer/<int:answer_id>/delete')
+@app.route('/answer/<answer_id>/delete')
 def delete_answer(answer_id):
     question_id = data_manager.delete_answer_by_id(answer_id)
     return flask.redirect(f'/question/{question_id}')
@@ -72,7 +72,7 @@ def delete_answer(answer_id):
 
 @app.route('/question/<question_id>/edit', methods=['GET', 'POST'])
 def edit_question(question_id):
-    question = data_manager.get_question_data_by_id_dm(question_id)
+    question = data_manager.get_question_data_by_id(question_id)
     if flask.request.method == 'GET':
         return flask.render_template('edit_question.html', question=question)
     elif flask.request.method == 'POST':
@@ -81,42 +81,42 @@ def edit_question(question_id):
         new_image_file = flask.request.files['image']
         remove_image_checkbox = flask.request.form.get('remove_image')
         if 'image' in flask.request.files and new_image_file.filename != '':
-            data_manager.update_question_dm(title, message, question_id, remove_image_checkbox,
-                                            new_image_file)
+            data_manager.update_question(title, message, question_id, remove_image_checkbox,
+                                         new_image_file)
         else:
-            data_manager.update_question_dm(title, message, question_id, remove_image_checkbox)
+            data_manager.update_question(title, message, question_id, remove_image_checkbox)
         return flask.redirect(f'/question/{question_id}')
 
 
 @app.route('/question/<question_id>/vote_up')
 def vote_up_questions(question_id):
     if flask.request.args.get("source") == "question":
-        data_manager.vote_on_question_dm(question_id, "up")
+        data_manager.vote_on_question(question_id, "up")
         return flask.redirect(f'/question/{question_id}')
     else:
-        data_manager.vote_on_question_dm(question_id, "up")
+        data_manager.vote_on_question(question_id, "up")
         return flask.redirect('/list')
 
 
 @app.route('/question/<question_id>/vote_down')
 def vote_down_questions(question_id):
     if flask.request.args.get("source") == "question":
-        data_manager.vote_on_question_dm(question_id, "down")
+        data_manager.vote_on_question(question_id, "down")
         return flask.redirect(f'/question/{question_id}')
     else:
-        data_manager.vote_on_question_dm(question_id, "down")
+        data_manager.vote_on_question(question_id, "down")
         return flask.redirect('/list')
 
 
-@app.route('/answer/<int:answer_id>/vote_up')
+@app.route('/answer/<answer_id>/vote_up')
 def vote_up_answers(answer_id):
-    question_id = data_manager.vote_on_answer_dm(answer_id, "up")
+    question_id = data_manager.vote_on_answer(answer_id, "up")
     return flask.redirect(f'/question/{question_id}')
 
 
-@app.route('/answer/<int:answer_id>/vote_down')
+@app.route('/answer/<answer_id>/vote_down')
 def vote_down_answers(answer_id):
-    question_id = data_manager.vote_on_answer_dm(answer_id, "down")
+    question_id = data_manager.vote_on_answer(answer_id, "down")
     return flask.redirect(f'/question/{question_id}')
 
 
@@ -134,7 +134,7 @@ def add_comment_to_question(question_id):
 def add_comment_to_answer(answer_id):
     if flask.request.method == 'POST':
         message = flask.request.form['message']
-        question_id = data_manager.add_comment_to_answer_dm(answer_id, message)
+        question_id = data_manager.add_comment_to_answer(answer_id, message)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
         question_id = data_manager.get_question_id_by_answer_id(answer_id)
@@ -149,7 +149,7 @@ def add_tag(question_id):
         if new_tag:
             new_tag_name = flask.request.form.get('new_tag_name')
             tags.append(new_tag_name)
-        data_manager.add_tags_dm(question_id, tags)
+        data_manager.add_tags(question_id, tags)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
         tags = data_manager.get_tags()
@@ -173,7 +173,7 @@ def search():
 @app.route('/comments/<comment_id>/delete')
 def delete_comments(comment_id):
     question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
-    data_manager.delete_comment_dm(comment_id)
+    data_manager.delete_comment(comment_id)
     return flask.redirect(f'/question/{question_id}')
 
 
@@ -193,7 +193,7 @@ def delete_image_to_answer(answer_id):
 def edit_comment(comment_id):
     if flask.request.method == 'POST':
         message = flask.request.form['message']
-        data_manager.edit_comment_dm(comment_id, message)
+        data_manager.edit_comment(comment_id, message)
         question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
