@@ -50,29 +50,25 @@ def get_answers_by_question_id_dm(cursor, question_id):
 @connection.connection_handler
 def add_question_dm(cursor, title, message, image_file):
     submission_time = util.get_time()
-    image_path = None
-    if image_file.filename != '':
-        image_path = util.save_image(image_file)
+    image_path = util.save_image(image_file) if image_file.filename != '' else None
     cursor.execute("""
-                    INSERT INTO question(submission_time, view_number, vote_number, title, message, image)
-                    VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(image)s)
+                    INSERT INTO question(submission_time, view_number, vote_number, title, message)
+                    VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s)
                     RETURNING id;""",
                    {'submission_time': submission_time,
                     'vote_number': 0,
                     'view_number': 0,
                     'title': title,
-                    'message': message,
-                    'image': image_path})
+                    'message': message})
     new_question_id = cursor.fetchone()['id']
+    update_image_in_question(new_question_id, image_path)
     return new_question_id
 
 
 @connection.connection_handler
 def add_answer_dm(cursor, message, question_id, image_file):
     submission_time = util.get_time()
-    image_path = None
-    if image_file.filename != '':
-        image_path = util.save_image(image_file)
+    image_path = util.save_image(image_file) if image_file.filename != '' else None
     cursor.execute("""
                     INSERT INTO answer(submission_time, vote_number, message, question_id, image)
                     VALUES (%(submission_time)s, %(vote_number)s, %(message)s, %(question_id)s, %(image)s);
@@ -143,27 +139,35 @@ def delete_answer_by_id(cursor, answer_id):
     return question_id
 
 
-# TODO ADDITIONAL add date of edition
-# Fixme: deleting image file
 @connection.connection_handler
-def update_question_dm(cursor, title, message, old_image_path, new_image_file, question_id, remove_image):
-    new_image_path = None
-    if remove_image:
-        util.delete_image_files([old_image_path])
-    if new_image_file.filename != '':
+def update_question_dm(cursor, title, message, question_id, remove_image,
+                       new_image_file=None):
+    #  solution for removing pic when checkbox is 'on' or there is new pic uploaded
+    if remove_image or new_image_file is not None:
+        delete_image_from_question(question_id)
+    # saving new picture in database and as file
+    if new_image_file is not None:
         new_image_path = util.save_image(new_image_file)
-    if remove_image and new_image_file.filename == '':
-        new_image_path = old_image_path
+        update_image_in_question(question_id, new_image_path)
+    #  leaving old pic
     cursor.execute("""
                     UPDATE question 
                     SET 
                         title = %(title)s, 
-                        message = %(message)s, 
-                        image = %(image)s
+                        message = %(message)s
                     WHERE id = %(question_id)s;""",
                    {'title': title,
                     'message': message,
-                    'image': new_image_path,
+                    'question_id': question_id})
+
+
+@connection.connection_handler
+def update_image_in_question(cursor, question_id, image_path):
+    cursor.execute("""
+                    UPDATE question 
+                    SET image = %(image)s
+                    WHERE id = %(question_id)s;""",
+                   {'image': image_path,
                     'question_id': question_id})
 
 
@@ -218,7 +222,7 @@ def add_comment_question(cursor, question_id, message):
                     """, {'question_id': question_id,
                           'message': message,
                           'submission_time': submission_time,
-                          'edited_count':0})
+                          'edited_count': 0})
 
 
 @connection.connection_handler
@@ -246,7 +250,7 @@ def add_comment_to_answer_dm(cursor, answer_id, message):
                     """, {'answer_id': answer_id,
                           'message': message,
                           'submission_time': submission_time,
-                          'edited_count':0})
+                          'edited_count': 0})
     question_id = cursor.fetchone()['question_id']
     return question_id
 
@@ -257,7 +261,7 @@ def delete_comment_dm(cursor, comment_id):
                     DELETE FROM comment
                     WHERE id = %(comment_id)s
                     RETURNING question_id;                                    
-                    """,{'comment_id':comment_id})
+                    """, {'comment_id': comment_id})
     question_id = cursor.fetchone()["question_id"]
     return question_id
 
@@ -357,22 +361,36 @@ def get_questions_by_search_phrase(cursor, search_phrase):
 @connection.connection_handler
 def delete_image_from_answer(cursor, answer_id):
     cursor.execute("""
+                    SELECT image
+                    FROM answer
+                    WHERE id = %(answer_id)s;
+                    """, {'answer_id': answer_id})
+    image_path = cursor.fetchone()['image']
+    cursor.execute("""
                     UPDATE answer
                     SET image = Null
                     WHERE id = %(answer_id)s
                     RETURNING question_id;
                         """, {'answer_id': answer_id})
     question_id = cursor.fetchone()['question_id']
+    util.delete_image_files([image_path])
     return question_id
 
 
 @connection.connection_handler
 def delete_image_from_question(cursor, question_id):
     cursor.execute("""
+                    SELECT image
+                    FROM question
+                    WHERE id = %(question_id)s;
+                    """, {'question_id': question_id})
+    image_path = cursor.fetchone()['image']
+    cursor.execute("""
                     UPDATE question
                     SET image = Null
                     WHERE id = %(question_id)s;
                         """, {'question_id': question_id})
+    util.delete_image_files([image_path])
 
 
 @connection.connection_handler
@@ -381,7 +399,7 @@ def get_comment_by_id(cursor, comment_id):
                     SELECT *
                     FROM comment c
                     WHERE id = %(comment_id)s
-                    """, {'comment_id' :comment_id})
+                    """, {'comment_id': comment_id})
     comment = cursor.fetchone()
     return comment
 
@@ -406,12 +424,12 @@ def get_question_id_by_comment_question_or_answer(cursor, comment_id):
 
 
 @connection.connection_handler
-def edit_comment_dm(cursor,comment_id,message):
+def edit_comment_dm(cursor, comment_id, message):
     submission_time = util.get_time()
     cursor.execute("""
                     UPDATE comment
                     SET message = %(message)s, submission_time = %(submission_time)s, edited_count = edited_count + 1
                     WHERE id = %(comment_id)s
                     """, {'comment_id': comment_id,
-                         "message" : message,
-                         'submission_time' :submission_time})
+                          "message": message,
+                          'submission_time': submission_time})
