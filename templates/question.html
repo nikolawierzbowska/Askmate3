@@ -86,33 +86,33 @@
 <body>
 <h1>Question and Answers</h1>
 
-    <table>
-        <tr>
-            <th>Question</th>
-            <th>Message</th>
-            <th>Image</th>
-        </tr>
-        <tr>
-            <td>
-                <div class="votes">
-                    {{ question['title'] }}
-                    <div class="thumb">
-                        <a href="/question/{{ question.id }}/vote_up?source=question">&#128077;</a>
-                        <a href="/question/{{ question.id }}/vote_down?source=question">&#128078;</a>
-                    </div>
+<table>
+    <tr>
+        <th>Question</th>
+        <th>Message</th>
+        <th>Image</th>
+    </tr>
+    <tr>
+        <td>
+            <div class="votes">
+                {{ question['title'] }}
+                <div class="thumb">
+                    <a href="/question/{{ question.id }}/vote_up?source=question">&#128077;</a>
+                    <a href="/question/{{ question.id }}/vote_down?source=question">&#128078;</a>
                 </div>
+            </div>
         </td>
-                  <td>
-                {{ question['message'] }}<br><br>
-                {% if tags|length > 0 %}
-                    <i>Tags: </i>
-                    {% for tag in tags %}
-                        <button>{{ tag.name }}</button>
-                    {% endfor %}
-                {% endif %}
+        <td>
+            {{ question['message'] }}<br><br>
+            {% if tags|length > 0 %}
+                <i>Tags: </i>
+                {% for tag in tags %}
+                    <button>{{ tag.name }}</button>
+                {% endfor %}
+            {% endif %}
 
-            </td>
-            <td>
+        </td>
+        <td>
                 <span class="remove_img">
 
                     {% if question['image'] %}
@@ -163,7 +163,7 @@
 
 <table>
     <tr>
-        <th colspan="2">Comment to question</th>
+        <th colspan="2">Comments to question</th>
     </tr>
     <tr>
         <th>Date</th>
@@ -173,11 +173,15 @@
         <tr>
             <td>{{ comment.submission_time }}</td>
             <td>
-                <div class="cell-content cell-text" >
-                {{ comment.message }}
-
-                 <span class="edit-delete-buttons small-icon">
-                        <a href="/comments/{{ comment.id }}/delete" onclick="return confirm('Do you want to delete this comment?')">
+                <div class="cell-content cell-text">
+                    {{ comment.message }}
+                    <p>
+                        <button name="number_of_edit"><strong> Number of editions: {{ comment.edited_count }}</strong>
+                        </button>
+                    </p>
+                    <span class="edit-delete-buttons small-icon">
+                        <a href="/comments/{{ comment.id }}/delete"
+                           onclick="return confirm('Do you want to delete this comment?')">
                             <button type="button" id="remove_comment" name="">&#10060;</button>
                         </a>
                         <a href='/comment/{{ comment.id }}/edit'>
@@ -187,7 +191,6 @@
                 </div>
             </td>
         </tr>
-
     {% endfor %}
 </table>
 
@@ -223,45 +226,47 @@
                         </a>
                     </span>
                 </div>
-<br>
-<table>
-    <tr>
-        <th>
-            Comments
-            <span>
+                <br>
+                <table>
+                    <tr>
+                        <th>
+                            Comments
+                            <span>
                 <a href="/answer/{{ answer.id }}/new_comment">
                 <button>&#10133;</button>
                 </a>
             </span>
-        </th>
-    </tr>
-{% for comment in comments_to_answers %}
-            {% if comment.answer_id == answer.id %}
-                <tr>
-                    <td>
-                        <div class="cell-content cell-text">
-                            {{ comment.message }}
-                           <span class="edit-delete-buttons small-icon">
-                            <a href="/comments/{{comment.id}}/delete?data=answer" onclick="return confirm('Do you want to delete this comment?')" >
+                        </th>
+                    </tr>
+                    {% for comment in comments_to_answers %}
+                        {% if comment.answer_id == answer.id %}
+                            <tr>
+                                <td>
+                                    <div class="cell-content cell-text">
+                                        {{ comment.message }}
+                                        <span class="edit-delete-buttons small-icon">
+                            <a href="/comments/{{ comment.id }}/delete"
+                               onclick="return confirm('Do you want to delete this comment?')">
                             <button type="button" id="remove_comment" name="">&#10060;</button>
                             </a>
                             <a href='/comment/{{ comment.id }}/edit'>
                             <button type="button" id="edit_comment" name="">&#9998;</button>
                             </a>
                              </span>
-                        </div>
-                        <br>
-                        <i>{{ comment.submission_time }}</i>
-                         {% if comment.edited_count != None %}
-                            Number of editions: {{ comment.edited_count }}
+                                    </div>
+                                    <br>
+                                    <i>{{ comment.submission_time }}</i>
 
+                                    <p>
+                                        <button name="number_of_edit"><strong> Number of
+                                            editions: {{ comment.edited_count }}</strong></button>
+                                    </p>
+
+                                </td>
+                            </tr>
                         {% endif %}
-
-                    </td>
-                </tr>
-            {% endif %}
-        {% endfor %}
-    </table>
+                    {% endfor %}
+                </table>
 
             </td>
             <td>

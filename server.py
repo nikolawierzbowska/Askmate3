@@ -132,10 +132,6 @@ def vote_down_answers(answer_id):
     return flask.redirect(f'/question/{question_id}')
 
 
-@app.route('/comment/<comment_id>/edit.', methods=['GET', 'POST'])
-def edit_comment_to_question(question_id):
-    pass
-
 
 @app.route('/question/<question_id>/new_comment', methods=['GET', 'POST'])
 def add_comment_to_question(question_id):
@@ -187,14 +183,10 @@ def search():
         return flask.redirect('/')
 
 
-
 @app.route('/comments/<comment_id>/delete')
 def delete_comments(comment_id):
-    if flask.request.args.get("data") == "answer":
-        question_id = data_manager.get_question_id_to_comment_answer(comment_id)
-        data_manager.delete_comment_dm(comment_id)
-    else:
-        question_id = data_manager.delete_comment_dm(comment_id)
+    question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
+    data_manager.delete_comment_dm(comment_id)
     return flask.redirect(f'/question/{question_id}')
 
 
@@ -212,15 +204,15 @@ def delete_image_to_answer(answer_id):
 
 @app.route('/comment/<comment_id>/edit',methods =['GET', 'POST'])
 def edit_comment(comment_id):
-    if flask.request.method == 'GET':
-        comment = data_manager.get_comment_by_id(comment_id)
-        question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
-        return flask.render_template('edit_comments.html',comment =comment, question_id=question_id)
-    elif flask.request.method =='POST':
+    if flask.request.method =='POST':
         message = flask.request.form['message']
         data_manager.edit_comment_dm(comment_id,message)
         question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
         return flask.redirect(f'/question/{question_id}')
+    elif flask.request.method == 'GET':
+        comment = data_manager.get_comment_by_id(comment_id)
+        question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
+        return flask.render_template('edit_comments.html',comment =comment, question_id=question_id)
 
 
 @app.template_filter('highlight_search_phrase')
@@ -231,24 +223,8 @@ def highlight_search_phrase(value, search_phrase):
     return value
 
 
-# @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
-# def edit_answer(answer_id):
-#     answer = data_manager.get_answer_data_by_id_dm(answer_id)
-#     if flask.request.method == 'GET':
-#         return flask.render_template('edit_answer.html', message=answer[MESSAGE - 1],
-#                                      question_id=answer[ID + 3], answer_id=answer[ID])
-#     elif flask.request.method == 'POST':
-#         message = flask.request.form['message']
-#         image_file = flask.request.files['image']
-#         if 'image' in flask.request.files and image_file.filename != '':
-#             unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
-#             image_path = 'static/uploads/' + unique_filename
-#             image_file.save(image_path)
-#         else:
-#             image_path = answer[IMAGE - 1]
-#             data_manager.update_answer_dm(answer[ID], message, image_path, answer[ID + 3])
-#         return flask.redirect(f'/question/{answer[ID + 3]}')
-      
-
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
