@@ -217,11 +217,12 @@ def get_comments_by_question_id_dm(cursor, question_id):
 def add_comment_question(cursor, question_id, message):
     submission_time = util.get_time()
     cursor.execute("""
-                    INSERT INTO comment(question_id, message,submission_time)
-                    VALUES (%(question_id)s, %(message)s, %(submission_time)s);
+                    INSERT INTO comment(question_id, message,submission_time, edited_count)
+                    VALUES (%(question_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
                     """, {'question_id': question_id,
                           'message': message,
-                          'submission_time': submission_time})
+                          'submission_time': submission_time,
+                          'edited_count': 0})
 
 
 @connection.connection_handler
@@ -240,15 +241,16 @@ def get_comments_to_answers_dm(cursor, question_id):
 def add_comment_to_answer_dm(cursor, answer_id, message):
     submission_time = util.get_time()
     cursor.execute("""
-                    INSERT INTO comment(answer_id, message, submission_time)
-                    VALUES (%(answer_id)s, %(message)s, %(submission_time)s);
+                    INSERT INTO comment(answer_id, message, submission_time, edited_count)
+                    VALUES (%(answer_id)s, %(message)s, %(submission_time)s, %(edited_count)s);
                     
                     SELECT question_id
                     FROM answer
                     WHERE id = %(answer_id)s;
                     """, {'answer_id': answer_id,
                           'message': message,
-                          'submission_time': submission_time})
+                          'submission_time': submission_time,
+                          'edited_count': 0})
     question_id = cursor.fetchone()['question_id']
     return question_id
 
@@ -259,18 +261,6 @@ def delete_comment_dm(cursor, comment_id):
                     DELETE FROM comment
                     WHERE id = %(comment_id)s
                     RETURNING question_id;                                    
-                    """, {'comment_id': comment_id})
-    question_id = cursor.fetchone()["question_id"]
-    return question_id
-
-
-@connection.connection_handler
-def get_question_id_to_comment_answer(cursor, comment_id):
-    cursor.execute("""
-                    SELECT a.question_id
-                    FROM comment c
-                    JOIN answer a ON a.id = c.answer_id
-                    WHERE c.id = %(comment_id)s                 
                     """, {'comment_id': comment_id})
     question_id = cursor.fetchone()["question_id"]
     return question_id
@@ -438,8 +428,8 @@ def edit_comment_dm(cursor, comment_id, message):
     submission_time = util.get_time()
     cursor.execute("""
                     UPDATE comment
-                    SET message = %(message)s, submission_time = %(submission_time)s, edited_count = edited_count+1
+                    SET message = %(message)s, submission_time = %(submission_time)s, edited_count = edited_count + 1
                     WHERE id = %(comment_id)s
                     """, {'comment_id': comment_id,
                           "message": message,
-                          "submission_time": submission_time})
+                          'submission_time': submission_time})
