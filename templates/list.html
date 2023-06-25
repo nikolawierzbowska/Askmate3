@@ -58,20 +58,18 @@
         margin-left: 5px;
     }
 
-    .add_question_link {
-            display: block;
-            margin: 10px;
-    }
-
 </style>
 
 <body>
     <h1>Questions</h1>
     <p>
-
-        <a href="{{ "/add_question" }}" class="add_question_link">
-
+        <a href='{{ "/add_question" }}'>
             <button>Add Question</button>
+        </a>
+    </p>
+    <p>
+        <a href='{{ "/" }}'>
+            <button>Main</button>
         </a>
     </p>
     <table>

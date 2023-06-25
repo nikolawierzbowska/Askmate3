@@ -414,6 +414,7 @@ def get_question_id_by_comment_question_or_answer(cursor, comment_id):
     question_id = cursor.fetchone()["question_id"]
     return question_id
 
+
 @connection.connection_handler
 def edit_comment_dm(cursor,comment_id,message):
     submission_time = util.get_time()
