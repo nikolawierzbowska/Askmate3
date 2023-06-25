@@ -18,42 +18,23 @@
 </head>
 
 <body>
-<h2> Edit question comment</h2>
-
-<p><a href="/question/{{ question.id }}">
+<a href="/question/{{ question_id }}">
     <button>Go back</button>
-</a></p>
+</a>
 
-<form action="/question/{{ question.id }}/new_comment" method="POST" enctype="multipart/form-data">
+<h2> Edit comment</h2>
+
+
+<form action='/comment/{{ comment.id }}/edit' method="POST" enctype="multipart/form-data">
     <div>
-        <p><label for="message">Comment:</label>
-            <textarea id="message" name="message" required>{{comment['message']}}</textarea>
-        </p>
+        <label for="message">Comment:</label>
+        <textarea id="message" name="message" required>{{ comment.message }}</textarea>
+
     </div>
-
-
     <div>
         <input type="submit" value="Submit">
     </div>
 </form>
-
-<h2>Edit answer comment</h2>
-
-<p><a href="/question/{{ question.id }}">
-    <button>Go back</button>
-</a></p>
-
-    <form action="/answer/{{ answer.id }}/new_comment" method="POST" enctype="multipart/form-data">
-        <div>
-            <label for="message">Comment:</label>
-            <textarea id="message" name="message" required>{{comment['message']}}</textarea>
-        </div>
-        <div>
-            <input type="submit" value="Submit">
-        </div>
-    </form>
-
-
 
 
 </body>
