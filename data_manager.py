@@ -434,3 +434,4 @@ def edit_comment(cursor, comment_id, message):
                     """, {'comment_id': comment_id,
                           "message": message,
                           'submission_time': submission_time})
+
