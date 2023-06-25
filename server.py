@@ -7,7 +7,14 @@ app = Flask(__name__)
 
 @app.route('/')
 def main_page():
-    return flask.render_template('main.html')
+    order_by = flask.request.args.get('order_by')
+    order = flask.request.args.get('order_direction')
+    if order is not None and order_by is not None:
+        questions = data_manager.get_sorted_questions(order_by, order)
+    else:
+        questions = data_manager.get_sorted_questions("submission_time", "DESC")
+    latest_questions = questions[:5]
+    return flask.render_template('main.html', questions=latest_questions)
 
 
 @app.route('/list')
