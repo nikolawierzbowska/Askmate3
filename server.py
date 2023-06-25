@@ -2,7 +2,6 @@ import flask
 from flask import Flask
 import data_manager
 
-
 app = Flask(__name__)
 
 
@@ -73,7 +72,6 @@ def delete_answer(answer_id):
 
 @app.route('/question/<question_id>/edit', methods=['GET', 'POST'])
 def edit_question(question_id):
-    delete_image = None
     question = data_manager.get_question_data_by_id_dm(question_id)
     if flask.request.method == 'GET':
         return flask.render_template('edit_question.html', question=question)
@@ -81,23 +79,13 @@ def edit_question(question_id):
         title = flask.request.form['title']
         message = flask.request.form['message']
         new_image_file = flask.request.files['image']
-        old_image_path = question['image']
         remove_image_checkbox = flask.request.form.get('remove_image')
         if 'image' in flask.request.files and new_image_file.filename != '':
-            delete_image = True
-            data_manager.update_question_dm(title, message, old_image_path, new_image_file, question_id, delete_image)
-        elif remove_image_checkbox:
-            data_manager.update_question_dm(title, message, old_image_path, new_image_file,
-                                            question_id, remove_image_checkbox)
-        elif not remove_image_checkbox:
-            data_manager.update_question_dm(title, message, old_image_path, new_image_file, question_id, delete_image)
+            data_manager.update_question_dm(title, message, question_id, remove_image_checkbox,
+                                            new_image_file)
+        else:
+            data_manager.update_question_dm(title, message, question_id, remove_image_checkbox)
         return flask.redirect(f'/question/{question_id}')
-
-
-# @app.route('/question/<question_id>/delete_image')
-# def delete_question_image(question_id):  # delete file -> util
-#     data_manager.delete_image(question_id)
-#     return flask.redirect(f'/question/{question_id}')
 
 
 @app.route('/question/<question_id>/vote_up')
@@ -130,7 +118,6 @@ def vote_up_answers(answer_id):
 def vote_down_answers(answer_id):
     question_id = data_manager.vote_on_answer_dm(answer_id, "down")
     return flask.redirect(f'/question/{question_id}')
-
 
 
 @app.route('/question/<question_id>/new_comment', methods=['GET', 'POST'])
@@ -202,29 +189,27 @@ def delete_image_to_answer(answer_id):
     return flask.redirect(f'/question/{question_id}')
 
 
-@app.route('/comment/<comment_id>/edit',methods =['GET', 'POST'])
+@app.route('/comment/<comment_id>/edit', methods=['GET', 'POST'])
 def edit_comment(comment_id):
-    if flask.request.method =='POST':
+    if flask.request.method == 'POST':
         message = flask.request.form['message']
-        data_manager.edit_comment_dm(comment_id,message)
+        data_manager.edit_comment_dm(comment_id, message)
         question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
         return flask.redirect(f'/question/{question_id}')
     elif flask.request.method == 'GET':
         comment = data_manager.get_comment_by_id(comment_id)
         question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
-        return flask.render_template('edit_comments.html',comment =comment, question_id=question_id)
+        return flask.render_template('edit_comments.html', comment=comment, question_id=question_id)
 
 
 @app.template_filter('highlight_search_phrase')
 def highlight_search_phrase(value, search_phrase):
     if search_phrase:
-        highlighted_value = value.replace(search_phrase, f'<span class="highlight" style="background-color:lightgreen;">{search_phrase}</span>')
+        highlighted_value = value.replace(search_phrase,
+                                          f'<span class="highlight" style="background-color:lightgreen;">{search_phrase}</span>')
         return highlighted_value
     return value
 
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-
