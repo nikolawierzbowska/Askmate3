@@ -51,12 +51,12 @@
         justify-content: center;
         flex-direction: column;
         margin-left: 5px;
-
     }
 
     .thumb a {
         margin-left: 5px;
     }
+
 
 </style>
 
@@ -76,53 +76,53 @@
     <table>
         <thead>
          <tr>
-                <th>
-                    <div class="header-cell">
-                        Submission Time
-                        <div class="sort-arrow">
-                            <a href="/list?order_by=submission_time&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=submission_time&order_direction=desc">&#128317;</a>
-                        </div>
+            <th>
+                <div class="header-cell">
+                    Submission Time
+                    <div class="sort-arrow">
+                        <a href="/list?order_by=submission_time&order_direction=asc">&#128316;</a>
+                        <a href="/list?order_by=submission_time&order_direction=desc">&#128317;</a>
                     </div>
-                </th>
-                <th>
-                    <div class="header-cell">
-                        Number of Views
-                        <div class="sort-arrow">
-                            <a href="/list?order_by=view_number&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=view_number&order_direction=desc">&#128317;</a>
-                        </div>
+                </div>
+            </th>
+            <th>
+                <div class="header-cell">
+                    Number of Views
+                    <div class="sort-arrow">
+                        <a href="/list?order_by=view_number&order_direction=asc">&#128316;</a>
+                        <a href="/list?order_by=view_number&order_direction=desc">&#128317;</a>
                     </div>
-                </th>
-                <th>
-                    <div class="header-cell">
-                        Votes
-                        <div class="sort-arrow">
-                            <a href="/list?order_by=vote_number&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=vote_number&order_direction=desc">&#128317;</a>
-                        </div>
+                </div>
+            </th>
+            <th>
+                <div class="header-cell">
+                    Votes
+                    <div class="sort-arrow">
+                        <a href="/list?order_by=vote_number&order_direction=asc">&#128316;</a>
+                        <a href="/list?order_by=vote_number&order_direction=desc">&#128317;</a>
                     </div>
-                </th>
-                <th>
-                    <div class="header-cell">
-                        Title
-                        <div class="sort-arrow">
-                            <a href="/list?order_by=title&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=title&order_direction=desc">&#128317;</a>
-                        </div>
+                </div>
+            </th>
+            <th>
+                <div class="header-cell">
+                    Title
+                    <div class="sort-arrow">
+                        <a href="/list?order_by=title&order_direction=asc">&#128316;</a>
+                        <a href="/list?order_by=title&order_direction=desc">&#128317;</a>
                     </div>
-                </th>
-                <th>
-                    <div class="header-cell">
-                        Message
-                        <div class="sort-arrow">
-                            <a href="/list?order_by=message&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=message&order_direction=desc">&#128317;</a>
-                        </div>
+                </div>
+            </th>
+            <th>
+                <div class="header-cell">
+                    Message
+                    <div class="sort-arrow">
+                        <a href="/list?order_by=message&order_direction=asc">&#128316;</a>
+                        <a href="/list?order_by=message&order_direction=desc">&#128317;</a>
                     </div>
-                </th>
-                <th>Answer</th>
-                <th>Image</th>
+                </div>
+            </th>
+            <th>Answer</th>
+            <th>Image</th>
             </tr>
         </thead>
 
@@ -140,12 +140,14 @@
                         </div>
                     </div>
                 </td>
-                <td><a href="/question/{{ question['id'] }}">{{ question['title'] }}</a></td>
-                <td>{{ question['message'] }}</td>
+                <td><a href="/question/{{ question['id'] }}">{{ question['title'] | highlight_search_phrase(search_phrase) |safe }}</a></td>
+                <td>{{ question['message'] | highlight_search_phrase(search_phrase) |safe }}</td>
                 <td>
-                    {% for answer in question['answers'] %}
-                        {{ answer }}<br>
-                    {% endfor %}
+                    <div>
+                        {% for answer in question['answers'] %}
+                            {{ answer | highlight_search_phrase(search_phrase) |safe }}
+                        {% endfor %}
+                    </div>
                 </td>
                 <td>
                     {% if question['image'] %}

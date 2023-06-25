@@ -1,7 +1,7 @@
 import flask
 from flask import Flask
-
 import data_manager
+
 
 app = Flask(__name__)
 
@@ -132,6 +132,7 @@ def vote_down_answers(answer_id):
     return flask.redirect(f'/question/{question_id}')
 
 
+
 @app.route('/question/<question_id>/new_comment', methods=['GET', 'POST'])
 def add_comment_to_question(question_id):
     if flask.request.method == 'POST':
@@ -173,10 +174,13 @@ def search():
     search_phrase = flask.request.args.get('q')
     if search_phrase:
         questions = data_manager.get_questions_by_search_phrase(search_phrase)
-        return flask.render_template('search.html', questions=questions)
+        for question in questions:
+            question['title'] = highlight_search_phrase(question['title'], search_phrase)
+            question['message'] = highlight_search_phrase(question['message'], search_phrase)
+            question['answers'] = [highlight_search_phrase(answer, search_phrase) for answer in question['answers']]
+        return flask.render_template('search.html', questions=questions, search_phrase=search_phrase)
     else:
         return flask.redirect('/')
-
 
 
 @app.route('/comments/<comment_id>/delete')
@@ -211,24 +215,13 @@ def edit_comment(comment_id):
         return flask.render_template('edit_comments.html',comment =comment, question_id=question_id)
 
 
-    # @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
-# def edit_answer(answer_id):
-#     answer = data_manager.get_answer_data_by_id_dm(answer_id)
-#     if flask.request.method == 'GET':
-#         return flask.render_template('edit_answer.html', message=answer[MESSAGE - 1],
-#                                      question_id=answer[ID + 3], answer_id=answer[ID])
-#     elif flask.request.method == 'POST':
-#         message = flask.request.form['message']
-#         image_file = flask.request.files['image']
-#         if 'image' in flask.request.files and image_file.filename != '':
-#             unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
-#             image_path = 'static/uploads/' + unique_filename
-#             image_file.save(image_path)
-#         else:
-#             image_path = answer[IMAGE - 1]
-#             data_manager.update_answer_dm(answer[ID], message, image_path, answer[ID + 3])
-#         return flask.redirect(f'/question/{answer[ID + 3]}')
-      
+@app.template_filter('highlight_search_phrase')
+def highlight_search_phrase(value, search_phrase):
+    if search_phrase:
+        highlighted_value = value.replace(search_phrase, f'<span class="highlight" style="background-color:lightgreen;">{search_phrase}</span>')
+        return highlighted_value
+    return value
+
 
 if __name__ == '__main__':
     app.run(debug=True)
