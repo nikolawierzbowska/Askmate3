@@ -3,18 +3,33 @@ import util
 
 
 @connection.connection_handler
-def get_sorted_questions(cursor, order_by, order_direction):
-    order = 'ASC' if order_direction.upper() == 'ASC' else 'DESC'
-    order_columns = ['submission_time', 'view_number', 'vote_number', 'number_of_answers', 'title', 'message']
-    if order_by not in order_columns:
-        raise Exception('Wrong order by query.')
-    cursor.execute(f"""
-                    SELECT *,
-                    (SELECT COUNT(id) FROM answer a WHERE q.id = a.question_id) AS number_of_answers
-                    FROM question q
-                    ORDER BY {order_by} {order};
-                    """)
-    return cursor.fetchall()
+def get_sorted_questions(cursor, order_by, order_direction, questions=None):
+    if questions is None:
+        order = 'ASC' if order_direction.upper() == 'ASC' else 'DESC'
+        order_columns = ['submission_time', 'view_number', 'vote_number', 'number_of_answers', 'title', 'message']
+        if order_by not in order_columns:
+            raise Exception('Wrong order by query.')
+        cursor.execute(f"""
+                        SELECT *,
+                        (SELECT COUNT(id) FROM answer a WHERE q.id = a.question_id) AS number_of_answers
+                        FROM question q
+                        ORDER BY {order_by} {order};
+                        """)
+        return cursor.fetchall()
+    else:
+        order_by_column = {
+            'submission_time': 'submission_time',
+            'view_number': 'view_number',
+            'vote_number': 'vote_number',
+            'number_of_answers': 'number_of_answers',
+            'title': 'title',
+            'message': 'message'
+        }
+        order_by = order_by_column.get(order_by)
+        if order_by is None:
+            raise Exception('Wrong order by query.')
+        questions.sort(key=lambda q: q[order_by], reverse=(order_direction.upper() == 'DESC'))
+        return questions
 
 
 @connection.connection_handler
@@ -434,4 +449,3 @@ def edit_comment(cursor, comment_id, message):
                     """, {'comment_id': comment_id,
                           "message": message,
                           'submission_time': submission_time})
-

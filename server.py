@@ -97,21 +97,31 @@ def edit_question(question_id):
 
 @app.route('/question/<question_id>/vote_up')
 def vote_up_questions(question_id):
-    if flask.request.args.get("source") == "question":
-        data_manager.vote_on_question(question_id, "up")
+    source = flask.request.args.get('source')
+    if source == 'question':
+        data_manager.vote_on_question(question_id, 'up')
         return flask.redirect(f'/question/{question_id}')
+    elif source == 'search':
+        search_phrase = flask.request.args.get('q')
+        data_manager.vote_on_question(question_id, 'up')
+        return flask.redirect(flask.url_for('search', q=search_phrase))
     else:
-        data_manager.vote_on_question(question_id, "up")
+        data_manager.vote_on_question(question_id, 'up')
         return flask.redirect('/list')
 
 
 @app.route('/question/<question_id>/vote_down')
 def vote_down_questions(question_id):
-    if flask.request.args.get("source") == "question":
-        data_manager.vote_on_question(question_id, "down")
+    source = flask.request.args.get('source')
+    if source == 'question':
+        data_manager.vote_on_question(question_id, 'down')
         return flask.redirect(f'/question/{question_id}')
+    elif source == 'search':
+        search_phrase = flask.request.args.get('q')
+        data_manager.vote_on_question(question_id, 'down')
+        return flask.redirect(flask.url_for('search', q=search_phrase))
     else:
-        data_manager.vote_on_question(question_id, "down")
+        data_manager.vote_on_question(question_id, 'down')
         return flask.redirect('/list')
 
 
@@ -166,13 +176,20 @@ def add_tag(question_id):
 @app.route('/search')
 def search():
     search_phrase = flask.request.args.get('q')
+    order_by = flask.request.args.get('order_by')
+    order_direction = flask.request.args.get('order_direction')
     if search_phrase:
         questions = data_manager.get_questions_by_search_phrase(search_phrase)
         for question in questions:
             question['title'] = highlight_search_phrase(question['title'], search_phrase)
             question['message'] = highlight_search_phrase(question['message'], search_phrase)
             question['answers'] = [highlight_search_phrase(answer, search_phrase) for answer in question['answers']]
-        return flask.render_template('search.html', questions=questions, search_phrase=search_phrase)
+        questions = [question for question in questions if search_phrase in question['title'] or search_phrase
+                     in question['message'] or any(search_phrase in answer for answer in question['answers'])]
+        if order_by is not None and order_direction is not None:
+            questions = data_manager.get_sorted_questions(order_by, order_direction, questions)
+        return flask.render_template('search.html', questions=questions, search_phrase=search_phrase, order_by=order_by,
+                                     order_direction=order_direction)
     else:
         return flask.redirect('/')
 
@@ -212,8 +229,8 @@ def edit_comment(comment_id):
 @app.template_filter('highlight_search_phrase')
 def highlight_search_phrase(value, search_phrase):
     if search_phrase:
-        highlighted_value = value.replace(search_phrase,
-                                          f'<span class="highlight" style="background-color:lightgreen;">{search_phrase}</span>')
+        highlighted_value = value.replace(search_phrase, f'<span class="highlight" '
+                                                         f'style="background-color:lightgreen;">{search_phrase}</span>')
         return highlighted_value
     return value
 
