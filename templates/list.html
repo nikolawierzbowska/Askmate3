@@ -63,13 +63,13 @@
 <body>
     <h1>Questions</h1>
     <p>
-        <a href='{{ "/add_question" }}'>
-            <button>Add Question</button>
+        <a href='{{ "/" }}'>
+            <button>Main</button>
         </a>
     </p>
     <p>
-        <a href='{{ "/" }}'>
-            <button>Main</button>
+        <a href='{{ "/add_question" }}'>
+            <button>Add Question</button>
         </a>
     </p>
     <table>
@@ -152,7 +152,7 @@
                 <td>{{ question.message }}</td>
                 <td>
                     {% if question.image %}
-                        <img src="{{ question.image }}" alt="Question Image" style="max-width: 50px;">
+                        <img src="{{ question.image }}" alt="Question Image" style="max-width: 150px;">
                     {% endif %}
                 </td>
             </tr>
