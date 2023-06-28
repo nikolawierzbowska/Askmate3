@@ -63,9 +63,8 @@ def get_answers_by_question_id(cursor, question_id):
 
 
 @connection.connection_handler
-def add_question(cursor, title, message, image_file):
+def add_question(cursor, title, message, image_path):
     submission_time = util.get_time()
-    image_path = util.save_image(image_file) if image_file.filename != '' else None
     cursor.execute("""
                     INSERT INTO question(submission_time, view_number, vote_number, title, message)
                     VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s)
@@ -81,9 +80,8 @@ def add_question(cursor, title, message, image_file):
 
 
 @connection.connection_handler
-def add_answer(cursor, message, question_id, image_file):
+def add_answer(cursor, message, question_id, image_path):
     submission_time = util.get_time()
-    image_path = util.save_image(image_file) if image_file.filename != '' else None
     cursor.execute("""
                     INSERT INTO answer(submission_time, vote_number, message, question_id, image)
                     VALUES (%(submission_time)s, %(vote_number)s, %(message)s, %(question_id)s, %(image)s);
@@ -117,7 +115,7 @@ def delete_question(cursor, question_id):
                     DELETE FROM question
                     WHERE id = %(question_id)s;
                     """, {'question_id': question_id})
-    util.delete_image_files(image_paths)
+    return image_paths
 
 
 @connection.connection_handler
@@ -150,21 +148,15 @@ def delete_answer_by_id(cursor, answer_id):
     data = cursor.fetchone()
     image_path = data['image']
     question_id = data['question_id']
-    util.delete_image_files([image_path])
-    return question_id
+    return question_id, image_path
 
 
 @connection.connection_handler
-def update_question(cursor, title, message, question_id, remove_image,
-                    new_image_file=None):
-    #  solution for removing pic when checkbox is 'on' or there is new pic uploaded
-    if remove_image or new_image_file is not None:
+def update_question(cursor, title, message, question_id, remove_image, new_image_path=None):
+    if remove_image or new_image_path is not None:
         delete_image_from_question(question_id)
-    # saving new picture in database and as file
-    if new_image_file is not None:
-        new_image_path = util.save_image(new_image_file)
+    if new_image_path is not None:
         update_image_in_question(question_id, new_image_path)
-    #  leaving old pic
     cursor.execute("""
                     UPDATE question 
                     SET 
@@ -386,8 +378,7 @@ def delete_image_from_answer(cursor, answer_id):
                     RETURNING question_id;
                         """, {'answer_id': answer_id})
     question_id = cursor.fetchone()['question_id']
-    util.delete_image_files([image_path])
-    return question_id
+    return question_id, image_path
 
 
 @connection.connection_handler
@@ -403,7 +394,7 @@ def delete_image_from_question(cursor, question_id):
                     SET image = Null
                     WHERE id = %(question_id)s;
                         """, {'question_id': question_id})
-    util.delete_image_files([image_path])
+    return image_path
 
 
 @connection.connection_handler
@@ -437,7 +428,7 @@ def get_question_id_by_comment_question_or_answer(cursor, comment_id):
 
 
 @connection.connection_handler
-def edit_comment(cursor, comment_id, message):
+def update_comment(cursor, comment_id, message):
     submission_time = util.get_time()
     cursor.execute("""
                     UPDATE comment

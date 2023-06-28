@@ -44,7 +44,6 @@ def connection_handler(function):
         connection = open_database()
         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as dict_cur:
             ret_value = function(dict_cur, *args, **kwargs)
-        connection.close()
         return ret_value
 
     return wrapper
