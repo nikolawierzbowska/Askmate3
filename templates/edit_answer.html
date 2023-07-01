@@ -1,38 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Edit Answer</title>
-    <style>
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
+{% extends 'layout_table.html' %}
 
-        textarea {
-            width: 100%;
-            height: 200px;
-            resize: vertical;
-        }
-    </style>
-</head>
-<body>
-    <h2>Edit Answer</h2>
-    <p><a href="/question/{{question_id}}"> <button>Go back</button></a></p>
-
-    <form action='/answer/{{answer_id}}/edit' method="POST" enctype="multipart/form-data">
+{% block title %}update answer{% endblock %}
+{% block page_header %}Update Answer{% endblock %}
+{% block options %}
+<p>
+    <a href="/question/{{ answer.question_id }}">
+        <button>Go back</button>
+    </a>
+</p>
+{% endblock %}
+{% block body %}
+    <form action='/answer/{{answer.id}}/edit' method="POST" enctype="multipart/form-data">
 
         <div>
             <label for="message">Answer:</label>
-            <textarea id="message" name="message" required>{{ message }}</textarea>
+            <textarea id="message" name="message" required>{{ answer.message }}</textarea>
         </div>
-        <div>
-            <label for="image">Image:</label>
-            <input type="file" id="image" name="image">
-        </div>
+            <div>
+                <label for="image">Image:</label>
+                <input type="file" id="image" name="image">
+            </div>
         <div>
             <input type="submit" value="Submit">
         </div>
     </form>
-</body>
-</html>
+{% endblock %}

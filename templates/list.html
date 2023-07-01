@@ -1,67 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Question List</title>
-</head>
-
-<style>
-    table {
-        border-collapse: collapse;
-        width: 85%;
-        margin-right: 15px;
-        margin-left: auto;
-        margin-bottom: 50px;
-    }
-
-    th, td {
-        position: relative;
-        border: 1px solid black;
-        padding: 8px;
-        text-align: center;
-        align-items: center;
-    }
-
-    .header-cell {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .sort-arrow {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        margin-left: 5px;
-    }
-
-    .sort-arrow a {
-        margin-left: 5px;
-    }
-
-    .vote {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .thumb {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        margin-left: 5px;
-
-    }
-
-    .thumb a {
-        margin-left: 5px;
-    }
-
-</style>
-
-<body>
-    <h1>Questions</h1>
+{% extends 'layout_table.html' %}
+{% block title %}list questions{% endblock %}
+{% block page_header %}List Questions{% endblock %}
+{% block options %}
+<div class="menu">
     <p>
         <a href='{{ "/" }}'>
             <button>Main</button>
@@ -72,63 +13,23 @@
             <button>Add Question</button>
         </a>
     </p>
+</div>
+{% endblock %}
+{% block body %}
     <table>
         <thead>
             <tr>
+                {% for column in columns %}
                 <th>
                     <div class="header-cell">
-                        Submission Time
+                        {{ column.label }}
                         <div class="sort-arrow">
-                            <a href="/list?order_by=submission_time&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=submission_time&order_direction=desc">&#128317;</a>
+                            <a href="/list?order_by={{ column.order_by }}&order_direction=asc">&#128316;</a>
+                            <a href="/list?order_by={{ column.order_by }}&order_direction=desc">&#128317;</a>
                         </div>
                     </div>
                 </th>
-                <th>
-                    <div class="header-cell">
-                        Number of Views
-                        <div class="sort-arrow">
-                            <a href="/list?order_by=view_number&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=view_number&order_direction=desc">&#128317;</a>
-                        </div>
-                    </div>
-                </th>
-                <th>
-                    <div class="header-cell">
-                        Votes
-                        <div class="sort-arrow">
-                            <a href="/list?order_by=vote_number&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=vote_number&order_direction=desc">&#128317;</a>
-                        </div>
-                    </div>
-                </th>
-                <th>
-                    <div class="header-cell">
-                        Answers
-                        <div class="sort-arrow">
-                            <a href="/list?order_by=number_of_answers&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=number_of_answers&order_direction=desc">&#128317;</a>
-                        </div>
-                    </div>
-                </th>
-                <th>
-                    <div class="header-cell">
-                        Title
-                        <div class="sort-arrow">
-                            <a href="/list?order_by=title&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=title&order_direction=desc">&#128317;</a>
-                        </div>
-                    </div>
-                </th>
-                <th>
-                    <div class="header-cell">
-                        Message
-                        <div class="sort-arrow">
-                            <a href="/list?order_by=message&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by=message&order_direction=desc">&#128317;</a>
-                        </div>
-                    </div>
-                </th>
+                {% endfor %}
                 <th>Image</th>
             </tr>
         </thead>
@@ -159,5 +60,4 @@
             {% endfor %}
         </tbody>
     </table>
-</body>
-</html>
+{% endblock %}

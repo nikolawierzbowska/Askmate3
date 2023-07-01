@@ -1,31 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add Answer</title>
-    <style>
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
+{% extends 'layout_table.html' %}
 
-        textarea {
-            width: 100%;
-            height: 200px;
-            resize: vertical;
-        }
-    </style>
-</head>
-<body>
-    <h2>Add Answer</h2>
-    <p>
-        <a href="/question/{{ question_id }}">
-            <button>Go back</button>
-        </a>
-    </p>
-
+{% block title %}add answer{% endblock %}
+{% block page_header %}Add Answer{% endblock %}
+{% block options %}
+<p>
+    <a href="/question/{{ question_id }}">
+        <button>Go back</button>
+    </a>
+</p>
+{% endblock %}
+{% block body %}
     <form action="/question/{{question_id}}/new_answer" method="POST" enctype="multipart/form-data">
-
         <div>
             <label for="message">Answer:</label>
             <textarea id="message" name="message" required></textarea>
@@ -42,5 +27,4 @@
             </div>
         </P>
     </form>
-</body>
-</html>
+{% endblock %}
