@@ -21,7 +21,6 @@ def get_sorted_questions(cursor, order_by, order_direction, questions=None):
             'submission_time': 'submission_time',
             'view_number': 'view_number',
             'vote_number': 'vote_number',
-            'number_of_answers': 'number_of_answers',
             'title': 'title',
             'message': 'message'
         }
@@ -440,3 +439,54 @@ def update_comment(cursor, comment_id, message):
                     """, {'comment_id': comment_id,
                           "message": message,
                           'submission_time': submission_time})
+
+
+@connection.connection_handler
+def update_answer(cursor, message, answer_id):
+    cursor.execute("""
+        UPDATE answer
+        SET
+            message = %(message)s
+        WHERE id = %(answer_id)s;""",
+                   {'message': message,
+                    'answer_id': answer_id})
+
+
+@connection.connection_handler
+def update_image(cursor, answer_id, image_file):
+    if image_file.filename != '':
+        image_path = util.save_image(image_file)
+        cursor.execute("""
+            UPDATE answer
+            SET
+                image = %(image_path)s
+            WHERE id = %(answer_id)s;""",
+                       {'image_path': image_path,
+                        'answer_id': answer_id})
+
+
+@connection.connection_handler
+def get_answer_by_id(cursor, answer_id):
+    cursor.execute("""
+                    SELECT *
+                    FROM answer
+                    WHERE id = %(answer_id)s;
+                    """, {'answer_id': answer_id})
+    return cursor.fetchone()
+
+
+@connection.connection_handler
+def delete_tag(cursor,question_id, tag_id):
+    cursor.execute("""
+            DELETE FROM question_tag
+            WHERE question_id = %(question_id)s 
+            AND tag_id = %(tag_id)s;
+            
+            DELETE FROM tag
+            WHERE id = %(tag_id)s
+            AND NOT EXISTS(
+                SELECT 1
+                FROM question_tag
+                WHERE tag_id = %(tag_id)s);
+                    """, {'question_id': question_id, 'tag_id': tag_id})
+

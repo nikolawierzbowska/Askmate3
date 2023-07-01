@@ -1,17 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for
-import data_manager, util
+import data_manager
+import util
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def main_page():
-    order_by = request.args.get('order_by')
-    order = request.args.get('order_direction')
-    if order is not None and order_by is not None:
-        questions = data_manager.get_sorted_questions(order_by, order)
-    else:
-        questions = data_manager.get_sorted_questions("submission_time", "DESC")
+    questions = data_manager.get_sorted_questions("submission_time", "DESC")
     latest_questions = questions[:5]
     return render_template('main.html', questions=latest_questions)
 
@@ -20,12 +16,19 @@ def main_page():
 def list_questions():
     order_by = request.args.get('order_by')
     order = request.args.get('order_direction')
-    if order is not None and order_by is not None:
-        questions = data_manager.get_sorted_questions(order_by, order)
-        return render_template("list.html", questions=questions)
-    else:
-        questions = data_manager.get_sorted_questions("submission_time", "DESC")
-        return render_template("list.html", questions=questions)
+    columns = [
+        {'label': 'Submission Time', 'order_by': 'submission_time'},
+        {'label': 'Number of Views', 'order_by': 'view_number'},
+        {'label': 'Votes', 'order_by': 'vote_number'},
+        {'label': 'Answers', 'order_by': 'number_of_answers'},
+        {'label': 'Title', 'order_by': 'title'},
+        {'label': 'Message', 'order_by': 'message'}
+    ]
+
+    questions = data_manager.get_sorted_questions(order_by, order) if order and order_by else \
+        data_manager.get_sorted_questions("submission_time", "DESC")
+
+    return render_template("list.html", questions=questions, columns=columns)
 
 
 @app.route('/question/<question_id>')
@@ -93,7 +96,10 @@ def update_question(question_id):
             new_image_path = util.save_image(new_image_file)
             data_manager.update_question(title, message, question_id, remove_image_checkbox,
                                          new_image_path)
+            util.delete_image_files([question['image']])
         else:
+            if remove_image_checkbox:
+                util.delete_image_files([question['image']])
             data_manager.update_question(title, message, question_id, remove_image_checkbox)
         return redirect(f'/question/{question_id}')
 
@@ -179,16 +185,32 @@ def add_tag(question_id):
 @app.route('/search')
 def search():
     search_phrase = request.args.get('q')
-    questions = data_manager.get_questions_by_search_phrase(search_phrase)
-    for question in questions:
-        question['title'] = highlight_search_phrase(question['title'], search_phrase)
-        question['message'] = highlight_search_phrase(question['message'], search_phrase)
-        question['answers'] = [highlight_search_phrase(answer, search_phrase) for answer in question['answers']]
-    questions = [question for question in questions if
-                 search_phrase.lower() in question['title'].lower() or search_phrase.lower()
-                 in question['message'].lower() or any(
-                     search_phrase.lower() in answer.lower() for answer in question['answers'])]
-    return render_template('search.html', questions=questions, search_phrase=search_phrase)
+    order_by = request.args.get('order_by')
+    order_direction = request.args.get('order_direction')
+    if search_phrase:
+        questions = data_manager.get_questions_by_search_phrase(search_phrase)
+        for question in questions:
+            question['title'] = highlight_search_phrase(question['title'], search_phrase)
+            question['message'] = highlight_search_phrase(question['message'], search_phrase)
+            question['answers'] = [highlight_search_phrase(answer, search_phrase) for answer in question['answers']]
+        questions = [question for question in questions if
+                     search_phrase.lower() in question['title'].lower() or search_phrase.lower()
+                     in question['message'].lower() or any(
+                         search_phrase.lower() in answer.lower() for answer in question['answers'])]
+        if order_by is not None and order_direction is not None:
+            questions = data_manager.get_sorted_questions(order_by, order_direction, questions)
+        columns = [
+            {'label': 'Submission Time', 'order_by': 'submission_time'},
+            {'label': 'Number of Views', 'order_by': 'view_number'},
+            {'label': 'Votes', 'order_by': 'vote_number'},
+            {'label': 'Title', 'order_by': 'title'},
+            {'label': 'Message', 'order_by': 'message'}
+        ]
+
+        return render_template('search.html', questions=questions, search_phrase=search_phrase,
+                               order_by=order_by, order_direction=order_direction, columns=columns)
+    else:
+        return redirect('/')
 
 
 @app.route('/comments/<comment_id>/delete')
@@ -208,6 +230,7 @@ def delete_image_to_question(question_id):
 @app.route('/answer/<answer_id>/delete_image')
 def delete_image_to_answer(answer_id):
     question_id, image_path = data_manager.delete_image_from_answer(answer_id)
+    util.delete_image_files(image_path)
     return redirect(f'/question/{question_id}')
 
 
@@ -229,13 +252,41 @@ def highlight_search_phrase(value, search_phrase):
     if search_phrase.lower() not in value.lower():
         return value
 
-    start_index = value.lower().index(search_phrase.lower())
-    stop_index = start_index + len(search_phrase)
-    original_substring = value[start_index:stop_index]
-    highlighted = f'<span style="background-color:lightgreen;">{original_substring}</span>'
-    highlighted_value = f'{value[0:start_index]}{highlighted}{value[stop_index:]}'
+    highlighted_value = value
+    start_index = 0
+    while True:
+        start_index = highlighted_value.lower().find(search_phrase.lower(), start_index)
+        if start_index == -1:
+            break
+
+        stop_index = start_index + len(search_phrase)
+        original_substring = highlighted_value[start_index:stop_index]
+        highlighted = f'<span style="background-color:lightgreen;">{original_substring}</span>'
+        highlighted_value = f'{highlighted_value[:start_index]}{highlighted}{highlighted_value[stop_index:]}'
+        start_index += len(highlighted)
 
     return highlighted_value
+
+
+@app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
+def update_answers(answer_id):
+    answer = data_manager.get_answer_by_id(answer_id)
+    if request.method == 'GET':
+        return render_template('edit_answer.html', answer=answer)
+    elif request.method == "POST":
+        image_file = request.files['image']
+        if 'image' in request.files and image_file.filename != '':
+            util.delete_image_files([answer['image']])
+        message = request.form['message']
+        data_manager.update_answer(message, answer_id)
+        data_manager.update_image(answer_id, image_file)
+        return redirect(f"/question/{answer['question_id']}")
+
+
+@app.route('/question/<question_id>/tag/<tag_id>/delete')
+def delete_tag(question_id, tag_id):
+    data_manager.delete_tag(question_id, tag_id)
+    return redirect(f'/question/{question_id}')
 
 
 if __name__ == '__main__':

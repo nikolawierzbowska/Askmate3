@@ -1,133 +1,8 @@
-<!DOCTYPE html>
-<html lang="eng">
-<head>
-    <title>Question and answers</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 85%;
-            margin-right: 15px;
-            margin-left: auto;
-            margin-bottom: 50px;
-        }
-
-        th, td {
-            border: 1px solid #999a9c;
-            padding: 8px;
-            text-align: center;
-        }
-
-        .cell-content {
-            position: relative;
-            text-align: center;
-        }
-
-        .cell-text {
-            display: block;
-            margin-right: 10px;
-        }
-
-        .buttons {
-            position: fixed;
-            top: 60px;
-            left: 15px;
-        }
-
-        .votes {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .thumb {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            margin-left: 5px;
-        }
-
-        .thumb a {
-            margin-left: 5px;
-        }
-
-        .edit-delete-buttons {
-            position: absolute;
-            top: 0;
-            right: -5px;
-            display: flex;
-            flex-direction: row-reverse;
-        }
-
-        .remove_img {
-            position: relative;
-            display: flex;
-            flex-direction: row;
-            align-items: flex-end;
-            height: 100%;
-            justify-content: center;
-        }
-
-        .del_img {
-            margin-top: 5px;
-            margin-right: 5px;
-            position: absolute;
-            top: 0;
-            right: 0;
-        }
-
-        .small-icon button {
-            font-size: 8px;
-            padding: 2px 4px;
-        }
-
-    </style>
-</head>
-<body>
-<h1>Question and Answers</h1>
-
-<table>
-    <tr>
-        <th>Question</th>
-        <th>Message</th>
-        <th>Image</th>
-    </tr>
-    <tr>
-        <td>
-            <div class="votes">
-                {{ question['title'] }}
-                <div class="thumb">
-                    <a href="/question/{{ question.id }}/vote_up?source=question">&#128077;</a>
-                    <a href="/question/{{ question.id }}/vote_down?source=question">&#128078;</a>
-                </div>
-            </div>
-        </td>
-        <td>
-            {{ question['message'] }}<br><br>
-            {% if tags|length > 0 %}
-                <i>Tags: </i>
-                {% for tag in tags %}
-                    <button>{{ tag.name }}</button>
-                {% endfor %}
-            {% endif %}
-
-        </td>
-        <td>
-                <span class="remove_img">
-
-                    {% if question['image'] %}
-                        <img src="../{{ question['image'] }}" alt="Question Image" style="max-width: 150px;">
-                        <div class="del_img small-icon">
-                                <a href="/question/{{ question.id }}/delete_image">
-                                    <button type="button" id="remove_image" name="">&#10060;</button>
-                                </a>
-                            </div>
-                    {% endif %}
-                </span>
-        </td>
-    </tr>
-</table>
-<div class="buttons">
+{% extends 'layout_table.html' %}
+{% block title %}question_&_answers{% endblock %}
+{% block page_header %}Question & Answers{% endblock %}
+{% block options %}
+<div class="menu">
     <p>
         <a href='{{ "/" }}'>
             <button>Main</button>
@@ -147,7 +22,6 @@
         <a href='/question/{{ question.id }}/delete'>
             <button>Delete question</button>
         </a>
-
     </p>
     <p>
         <a href='/question/{{ question.id }}/edit'>
@@ -156,7 +30,7 @@
     </p>
     <p>
         <a href='/question/{{ question.id }}/new_comment'>
-            <button>Add comment to question</button>
+            <button>Comment question</button>
         </a>
     </p>
     <p>
@@ -165,6 +39,53 @@
         </a>
     </p>
 </div>
+{% endblock %}
+{% block body %}
+<table>
+    <tr>
+        <th>Question</th>
+        <th>Message</th>
+        <th>Image</th>
+    </tr>
+    <tr>
+        <td>
+            <div class="votes">
+                {{ question['title'] }}
+                <div class="thumb">
+                    <a href="/question/{{ question.id }}/vote_up?source=question">&#128077;</a>
+                    <a href="/question/{{ question.id }}/vote_down?source=question">&#128078;</a>
+                </div>
+            </div>
+        </td>
+        <td>
+            <div class="button-container">
+                {{ question['message'] }}<br>
+                {% if tags|length > 0 %}
+                    <i>Tags: </i>
+                    {% for tag in tags %}
+                        <button>{{ tag.name }}</button>
+                        <div class="small-icon">
+                            <a href="/question/{{question.id}}/tag/{{tag.id}}/delete">
+                                <button>&#10060;</button></a>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </td>
+        <td>
+            <span class="remove_img">
+                {% if question['image'] %}
+                    <img src="../{{ question['image'] }}" alt="Question Image" style="max-width: 150px;">
+                    <div class="del_img small-icon">
+                            <a href="/question/{{ question.id }}/delete_image">
+                                <button type="button" id="remove_image" name="">&#10060;</button>
+                            </a>
+                        </div>
+                {% endif %}
+            </span>
+        </td>
+    </tr>
+</table>
 
 <table>
     <tr>
@@ -200,7 +121,6 @@
         </tr>
     {% endfor %}
 </table>
-
 <table>
     <tr>
         <th>Date</th>
@@ -232,17 +152,17 @@
                             <button type="button" id="edit_answer" name="">&#9998;</button>
                         </a>
                     </span>
-                </div>
-                <br>
-                <table>
-                    <tr>
-                        <th>
-                            Comments
-                            <span>
-                <a href="/answer/{{ answer.id }}/new_comment">
-                <button>&#10133;</button>
-                </a>
-            </span>
+                        </div>
+                        <br>
+                <table class="comment">
+                            <tr>
+                                <th>
+                                    Comments
+                                    <span>
+                        <a href="/answer/{{ answer.id }}/new_comment">
+                        <button>&#10133;</button>
+                        </a>
+                    </span>
                         </th>
                     </tr>
                     {% for comment in comments_to_answers %}
@@ -274,14 +194,15 @@
                         {% endif %}
                     {% endfor %}
                 </table>
-
             </td>
             <td>
                 <div class="remove_img">
                     {% if answer.image %}
                         <img src="../{{ answer.image }}" alt="Answer Image" style="max-width: 150px;">
                         <div class="del_img small-icon">
-                            <button type="button" id="remove_image" name="">&#10060;</button>
+                            <a href="/answer/{{answer.id}}/delete_image">
+                                <button type="button" id="remove_image" name="">&#10060;</button>
+                            </a>
                         </div>
                     {% endif %}
                 </div>
@@ -289,5 +210,4 @@
         </tr>
     {% endfor %}
 </table>
-</body>
-</html>
+{% endblock %}

@@ -4,11 +4,21 @@ import os
 from pathlib import Path
 
 
+ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
+
+
+def allowed_file(filename):
+    return filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 def save_image(image_file):
-    unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
-    image_path = 'static/uploads/' + unique_filename
-    image_file.save(image_path)
-    return image_path
+    if image_file and allowed_file(image_file.filename):
+        unique_filename = str(uuid.uuid4()) + os.path.splitext(image_file.filename)[1]
+        image_path = 'static/uploads/' + unique_filename
+        image_file.save(image_path)
+        return image_path
+    else:
+        raise ValueError('Invalid file format. Please upload a JPG or PNG file.')
 
 
 def get_time():

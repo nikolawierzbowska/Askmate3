@@ -1,39 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add new comment</title>
-    <style>
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
+{% extends 'layout_table.html' %}
 
-        textarea {
-            width: 100%;
-            height: 200px;
-            resize: vertical;
-        }
-    </style>
-</head>
-<body>
-<a href="/question/{{ question_id }}">
+{% block title %}comment question{% endblock %}
+{% block page_header %}Comment Question{% endblock %}
+{% block options %}
+<p>
+    <a href="/question/{{ question_id }}">
     <button>Go back</button>
-</a>
+    </a>
+</p>
+{% endblock %}
+{% block body %}
+    <form action="/question/{{ question_id }}/new_comment" method="POST" enctype="multipart/form-data">
+        <div>
+            <label for="message">New comment:</label>
+            <textarea id="message" name="message" required></textarea>
+        </div>
+        <div>
+            <input type="submit" value="Submit">
+        </div>
+    </form>
+{% endblock %}
 
-<h2> Add new comment</h2>
-
-<form action="/question/{{ question_id }}/new_comment" method="POST" enctype="multipart/form-data">
-    <div>
-        <label for="message">New comment:</label>
-        <textarea id="message" name="message" required></textarea>
-    </div>
-
-    <div>
-        <input type="submit" value="Submit">
-    </div>
-</form>
-
-
-</body>
-</html>
