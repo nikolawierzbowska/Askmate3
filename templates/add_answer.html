@@ -1,0 +1,30 @@
+{% extends 'layout_table.html' %}
+
+{% block title %}add answer{% endblock %}
+{% block page_header %}Add Answer{% endblock %}
+{% block options %}
+<p>
+    <a href="/question/{{ question_id }}">
+        <button>Go back</button>
+    </a>
+</p>
+{% endblock %}
+{% block body %}
+    <form action="/question/{{question_id}}/new_answer" method="POST" enctype="multipart/form-data">
+        <div>
+            <label for="message">Answer:</label>
+            <textarea id="message" name="message" required></textarea>
+        </div>
+        <p>
+            <div>
+                <label for="image">Image:</label>
+                <input type="file" id="image" name="image">
+            </div>
+        </p>
+        <P>
+            <div>
+                <input type="submit" value="Submit">
+            </div>
+        </P>
+    </form>
+{% endblock %}

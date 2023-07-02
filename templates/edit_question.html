@@ -1,0 +1,42 @@
+{% extends 'layout_table.html' %}
+
+{% block title %}update question{% endblock %}
+{% block page_header %}Update Question{% endblock %}
+{% block options %}
+<p>
+    <a href="/question/{{ question.id }}">
+        <button>Go back</button>
+    </a>
+</p>
+{% endblock %}
+{% block body %}
+    <form action="/question/{{question.id}}/edit" method="POST" enctype="multipart/form-data">
+        <div>
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" value={{question['title']}} maxlength="100" required>
+        </div>
+
+        <div>
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" required>{{question['message']}} </textarea>
+        </div>
+        <div>
+            <label for="image">Image:</label>
+            <input type="file" id="image" name="image">
+        </div>
+
+        {% if question['image'] %}
+        <div>
+            <label>Current Image:</label>
+            <img src="../../{{ question.image }}" alt="Question Image">
+            <div>
+                <input type="checkbox" id="remove_image" name="remove_image">
+                <label for="remove_image">Remove Image</label>
+            </div>
+        </div>
+        {% endif %}
+        <p>
+            <input type="submit" value="Submit">
+        </p>
+    </form>
+{% endblock %}

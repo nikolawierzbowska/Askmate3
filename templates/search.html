@@ -1,0 +1,71 @@
+{% extends 'layout_table.html' %}
+{% block title %}search_results{% endblock %}
+{% block page_header %}Search Results{% endblock %}
+{% block options %}
+<div class="menu">
+    <p>
+        <a href='{{ "/" }}'>
+            <button>Main</button>
+        </a>
+    </p>
+    <p>
+        <a href="/list?order_by=submission_time&order_direction=desc">
+            <button>List of questions</button>
+        </a>
+    </p>
+</div>
+{% endblock %}
+{% block body %}
+    <table class="search">
+        <thead>
+         <tr>
+             {% for column in columns %}
+            <th>
+                <div class="header-cell">
+                    {{ column.order_by }}
+                    <div class="sort-arrow">
+                        <a href="/search?q={{ search_phrase }}&order_by={{ column.order_by }}&order_direction=asc">&#128316;</a>
+                        <a href="/search?q={{ search_phrase }}&order_by={{ column.order_by }}&order_direction=desc">&#128317;</a>
+                    </div>
+                </div>
+            </th>
+             {% endfor %}
+            <th>Answer</th>
+            <th>Image</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for question in questions %}
+            <tr>
+                <td>{{ question['submission_time'] }}</td>
+                <td>{{ question['view_number'] }}</td>
+                <td>
+                    <div class="vote">
+                        {{ question['vote_number'] }}
+                        <div class="thumb">
+                            <a href="/question/{{question['id']}}/vote_up?source=search&q={{ search_phrase }}">&#x1F44D;</a>
+                            <a href="/question/{{question['id']}}/vote_down?source=search&q={{ search_phrase }}">&#x1F44E;</a>
+                        </div>
+                    </div>
+                </td>
+                <td><a href="/question/{{ question['id'] }}">{{ question['title'] | highlight_search_phrase(search_phrase) |safe }}</a></td>
+                <td>{{ question['message'] | highlight_search_phrase(search_phrase) |safe }}</td>
+                <td>
+                    <div>
+                        {% for answer in question['answers'] %}
+                            {{ answer | highlight_search_phrase(search_phrase) |safe }}
+                        {% endfor %}
+                    </div>
+                </td>
+                <td>
+                    {% if question['image'] %}
+                        <img src="{{ question['image'] }}" alt="Question Image" style="max-width: 150px;">
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+

@@ -1,0 +1,22 @@
+{% extends 'layout_table.html' %}
+
+{% block title %}comment answer{% endblock %}
+{% block page_header %}Comment Answer{% endblock %}
+{% block options %}
+<p>
+    <a href="/question/{{ question_id }}">
+    <button>Go back</button>
+    </a>
+</p>
+{% endblock %}
+{% block body %}
+    <form action="/answer/{{ answer_id }}/new_comment" method="POST" enctype="multipart/form-data">
+        <div>
+            <label for="message">Comment:</label>
+            <textarea id="message" name="message" required></textarea>
+        </div>
+        <div>
+            <input type="submit" value="Submit">
+        </div>
+    </form>
+{% endblock %}

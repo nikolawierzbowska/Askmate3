@@ -1,0 +1,63 @@
+{% extends 'layout_table.html' %}
+{% block title %}list questions{% endblock %}
+{% block page_header %}List Questions{% endblock %}
+{% block options %}
+<div class="menu">
+    <p>
+        <a href='{{ "/" }}'>
+            <button>Main</button>
+        </a>
+    </p>
+    <p>
+        <a href='{{ "/add_question" }}'>
+            <button>Add Question</button>
+        </a>
+    </p>
+</div>
+{% endblock %}
+{% block body %}
+    <table>
+        <thead>
+            <tr>
+                {% for column in columns %}
+                <th>
+                    <div class="header-cell">
+                        {{ column.label }}
+                        <div class="sort-arrow">
+                            <a href="/list?order_by={{ column.order_by }}&order_direction=asc">&#128316;</a>
+                            <a href="/list?order_by={{ column.order_by }}&order_direction=desc">&#128317;</a>
+                        </div>
+                    </div>
+                </th>
+                {% endfor %}
+                <th>Image</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for question in questions %}
+            <tr>
+                <td>{{ question.submission_time }}</td>
+                <td>{{ question.view_number }}</td>
+                <td>
+                    <div class="vote">
+                        {{ question['vote_number'] }}
+                        <div class="thumb">
+                            <a href="/question/{{question.id}}/vote_up">&#x1F44D;</a>
+                            <a href="/question/{{question.id}}/vote_down">&#x1F44E;</a>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ question.number_of_answers }}</td>
+                <td><a href="/question/{{ question.id }}">{{ question.title }}</a></td>
+                <td>{{ question.message }}</td>
+                <td>
+                    {% if question.image %}
+                        <img src="{{ question.image }}" alt="Question Image" style="max-width: 150px;">
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

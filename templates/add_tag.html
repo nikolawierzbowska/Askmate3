@@ -1,0 +1,34 @@
+{% extends 'layout_table.html' %}
+
+{% block title %}add tag{% endblock %}
+{% block page_header %}Add Tag{% endblock %}
+{% block options %}
+<p>
+    <a href="/question/{{ question_id }}">
+    <button>Go back</button>
+    </a>
+</p>
+{% endblock %}
+{% block body %}
+<form action="/question/{{ question_id }}/new_tag" method="POST">
+    <ul>
+        {% for tag in tags %}
+            <li>
+                <label>
+                    <input type="checkbox" name="tags" value="{{ tag.name }}">
+                    {{ tag.name }}
+                </label>
+            </li>
+        {% endfor %}
+        <li>
+            <label>
+                <input type="checkbox" name="new_tag_check_box" value="true">
+                Add Tags:
+                <input type="text" name="new_tag_name">
+            </label>
+        </li>
+    </ul>
+    <br>
+    <button type="submit">Submit</button>
+</form>
+{% endblock %}

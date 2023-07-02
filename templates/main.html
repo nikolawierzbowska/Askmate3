@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+
+{% block title %}ASK MATE MAIN{% endblock %}
+
+{% block body %}
+<h1><a href="/list">ASK MATE</a></h1>
+<div class="search-container">
+    <form action="/search" method="GET">
+        <label for="search"></label>
+        <input type="text" id="search" name="q" placeholder="Search..." required>
+        <button type="submit">Search</button>
+    </form>
+</div>
+<table class="main">
+    <thead>
+        <tr>
+            <th>Submission Time</th>
+            <th>Number of Views</th>
+            <th>Votes</th>
+            <th>Answers</th>
+            <th>Title</th>
+            <th>Message</th>
+            <th>Image</th>
+        </tr>
+    </thead>
+            <tbody>
+        {% for question in questions %}
+        <tr>
+            <td>{{ question.submission_time }}</td>
+            <td>{{ question.view_number }}</td>
+            <td>{{ question['vote_number'] }}</td>
+            <td>{{ question.number_of_answers }}</td>
+            <td><a href="/question/{{ question.id }}">{{ question.title }}</a></td>
+            <td>{{ question.message }}</td>
+            <td>
+                {% if question.image %}
+                    <img src="{{ question.image }}" alt="Question Image" style="max-width: 150px;">
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
