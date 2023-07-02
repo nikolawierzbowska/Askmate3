@@ -476,7 +476,7 @@ def get_answer_by_id(cursor, answer_id):
 
 
 @connection.connection_handler
-def delete_tag(cursor,question_id, tag_id):
+def delete_tag(cursor, question_id, tag_id):
     cursor.execute("""
             DELETE FROM question_tag
             WHERE question_id = %(question_id)s 
@@ -489,4 +489,3 @@ def delete_tag(cursor,question_id, tag_id):
                 FROM question_tag
                 WHERE tag_id = %(tag_id)s);
                     """, {'question_id': question_id, 'tag_id': tag_id})
-
