@@ -1,0 +1,27 @@
+{% extends 'layout_table.html' %}
+
+{% block title %}Login{% endblock %}
+{% block page_header %}Login{% endblock %}
+{% block options %}
+    <p>
+        <a href="/">
+            <button>Go back</button>
+        </a>
+    </p>
+{% endblock %}
+{% block body %}
+    <form action="/login" method="post">
+
+        <div>
+            <label for="username">Username: </label>
+            <input id="username" name="username" type="text" maxlength="50" required>
+
+            <label for="password"> Password: </label>
+            <input id="password" name="password" type="password" maxlength="20" minlength="3" required>
+
+            <input type="submit" value="Log in">
+        </div>
+    </form>
+
+{% endblock %}
+
