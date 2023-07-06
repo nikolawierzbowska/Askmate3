@@ -93,8 +93,6 @@ def list_users():
     return render_template("list_users.html", is_logged=is_logged(), users=users, LIST_USERS_HEADERS = LIST_USERS_HEADERS)
 
 
-
-
 @app.route('/')
 def main_page():
     questions = data_manager.get_sorted_questions("submission_time", "DESC")
