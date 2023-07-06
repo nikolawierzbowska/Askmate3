@@ -6,8 +6,18 @@
     <link rel="stylesheet" href="/static/stylesheet.css">
 </head>
 <body>
+<p>
+<a href="/logout">
+    <button>Log out</button>
+</a>
+</p>
+
+
 <h1>{% block page_header %}{% endblock %}</h1>
-<div class="buttons">{% block options %}{% endblock %}</div>
+<div class="buttons">{% block options %}
+
+
+{% endblock %}</div>
 <div class="content-form">
 </div>
 {% block body %}{% endblock %}
