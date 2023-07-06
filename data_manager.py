@@ -3,6 +3,38 @@ import util
 
 
 @connection.connection_handler
+def add_user(cursor, username, email, hashed_password):
+    registration_date = util.get_time()
+    cursor.execute("""
+                    INSERT INTO users(username, email, password, registration_date) 
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING id;""",
+                    (username, email,  hashed_password, registration_date))
+    return cursor.fetchone()["id"]
+
+@connection.connection_handler
+def get_user_by_name(cursor,username, email):
+    cursor.execute("""
+                SELECT * 
+                FROM users
+                WHERE username = %s  OR email = %s    
+                """, (username,email))
+    return  cursor.fetchone()
+
+
+@connection.connection_handler
+def get_users_list(cursor):
+    cursor.execute("""
+                    SELECT username, registration_date, reputation,
+                    (SELECT COUNT(id) FROM question q WHERE u.id = q.user_id) AS questions_number,
+                    (SELECT COUNT(id) FROM answer a WHERE u.id =a.user_id) AS answers_number,
+                    (SELECT COUNT(id) FROM comment c WHERE u.id = c.user_id) AS comments_number
+                    FROM users u;
+                    """)
+    return cursor.fetchall()
+
+
+@connection.connection_handler
 def get_sorted_questions(cursor, order_by, order_direction, questions=None):
     if questions is None:
         order = 'ASC' if order_direction.upper() == 'ASC' else 'DESC'

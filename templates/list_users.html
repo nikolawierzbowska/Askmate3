@@ -1,0 +1,41 @@
+{% extends 'layout_table.html' %}
+{% block title %}Users list{% endblock %}
+{% block page_header %}Users list{% endblock %}
+{% block options %}
+<div class="menu">
+    <p>
+        <a href='{{ "/" }}'>
+            <button>Main</button>
+        </a>
+    </p>
+
+</div>
+{% endblock %}
+{% block body %}
+    <table>
+        <thead>
+            <tr>
+            {% for header in  LIST_USERS_HEADERS %}
+                <th>
+                    <div class="header-cell">
+                        {{ header }}
+                    </div>
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.registration_date }}</td>
+                <td>{{ user.questions_number }}</td>
+                <td>{{ user.answers_number}}</td>
+                <td>{{ user.comments_number }}</td>
+                <td>{{ user.reputation }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

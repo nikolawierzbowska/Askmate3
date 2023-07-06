@@ -2,7 +2,8 @@ import datetime
 import uuid
 import os
 from pathlib import Path
-
+from flask import session, redirect
+from functools import wraps
 
 ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
 
@@ -28,4 +29,15 @@ def get_time():
 def delete_image_files(image_paths):
     [Path(image_path).unlink() for image_path in image_paths if image_path and
      Path(image_path).is_file() and Path(image_path).exists()]
+
+
+def is_logged_in(function):
+    @wraps(function)
+    def is_logged_wrapper(*args, **kwargs):
+        if "is_logged" in session and session["is_logged"]:
+            return function(*args, **kwargs)
+        else:
+            return redirect("/login")
+    return is_logged_wrapper
+
 
