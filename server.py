@@ -13,7 +13,7 @@ LIST_USERS_HEADERS = ['Username', 'Registration date', 'Number of asked question
 
 @app.route('/registration', methods=['GET', 'POST'])
 def registration():
-    if request.method == "GET":
+    if request.method == 'GET':
         return render_template("registration.html")
     else:
         username = request.form["username"]
@@ -26,12 +26,12 @@ def registration():
         if not password == repeat_password:
             errors.append("Passwords not match")
 
-        if 20 < len(password) < 3:
+        if 3 > len(password) > 20:
             errors.append("Password should have from 3 to 20 characters.")
-        if 50 < len(username) < 4:
+        if 4 > len(username) > 50:
             errors.append("Username should have from 4 to 50 characters.")
         if data_manager.get_user_by_name(username, email):
-            errors.append("User with this name and e-mail already exist!")
+            errors.append("User with this name or email already exists.")
         if len(errors) > 0:
             return render_template("registration.html", errors=errors)
 
@@ -44,40 +44,38 @@ def registration():
             return render_template("registration.html", errors='Unknown error, please try later.')
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST', 'GET'])
 def login():
-    if request.method == "GET":
-        return render_template("login.html", is_logged=is_logged())
-    elif request.method == "POST":
+    if request.method == 'GET':
+        return render_template("login.html")
+    else:
         username_email = request.form['username_email']
         password = request.form['password']
-
         errors = []
         user = data_manager.get_user_by_name(username_email, username_email)
         if not user:
             errors.append(f'{username_email} not exist')
-            return render_template("login.html", errors=errors, is_logged=is_logged())
+            return render_template("login.html", errors=errors)
 
-        is_password_correct = bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8'))
+        is_password_correct = bcrypt.checkpw(password.encode("utf-8"), user['password'].encode("utf-8"))
 
         if is_password_correct:
             session['username_email'] = username_email
             session['is_logged'] = True
-            return render_template("user_page.html", is_logged=is_logged())
+            session['user_id'] = user['id']
+            return render_template("user_page.html")
         else:
-            return render_template("login.html", errors=['Password incorrect!'], is_logged=is_logged())
-
+            return render_template("login.html", errors=['Password incorrect!'])
 
 
 @app.route('/user_page', methods=['GET'])
 @util.is_logged_in
 def user_page():
-     return render_template("user_page.html", is_logged=is_logged())
+    return render_template("user_page.html", is_logged=is_logged())
 
 
 def is_logged():
     return "is_logged" in session and session["is_logged"]
-
 
 
 @app.route('/logout', methods=['GET'])
@@ -90,14 +88,20 @@ def logout():
 @util.is_logged_in
 def list_users():
     users = data_manager.get_users_list()
-    return render_template("list_users.html", is_logged=is_logged(), users=users, LIST_USERS_HEADERS = LIST_USERS_HEADERS)
+    return render_template('list_users.html', users=users, LIST_USERS_HEADERS=LIST_USERS_HEADERS)
+
+
+@app.route('/tags')
+def list_tags():
+    tags = data_manager.get_tags()
+    return render_template('list_tags.html', tags=tags)
 
 
 @app.route('/')
 def main_page():
     questions = data_manager.get_sorted_questions("submission_time", "DESC")
     latest_questions = questions[:5]
-    return render_template('main.html', questions=latest_questions)
+    return render_template('main.html', questions=latest_questions, is_logged=is_logged())
 
 
 @app.route('/list')
@@ -116,7 +120,7 @@ def list_questions():
     questions = data_manager.get_sorted_questions(order_by, order) if order and order_by else \
         data_manager.get_sorted_questions("submission_time", "DESC")
 
-    return render_template("list.html", questions=questions, columns=columns)
+    return render_template("list.html", questions=questions, columns=columns, is_logged=is_logged())
 
 
 @app.route('/question/<question_id>')
@@ -128,8 +132,7 @@ def print_question(question_id):
     comments_to_answers = data_manager.get_comments_of_answers(question_id)
     tags = data_manager.get_tags_by_question_id(question_id)
     return render_template('question.html', question=question, answers=answers, comments_to_answers=comments_to_answers,
-                           comments=comments, tags=tags)
-
+                           comments=comments, tags=tags, is_logged=is_logged())
 
 
 @app.route('/add_question', methods=['GET', 'POST'])
@@ -140,11 +143,11 @@ def add_question():
         message = request.form['message']
         image_file = request.files['image']
         image_path = util.save_image(image_file) if image_file.filename != '' else None
-        new_question_id = data_manager.add_question(title, message, image_path)
+        user_id = session['user_id']
+        new_question_id = data_manager.add_question(title, message, image_path, user_id)
         return redirect(f'/question/{new_question_id}')
     else:
-        return render_template('add_question.html')
-
+        return render_template('add_question.html', is_logged=is_logged())
 
 
 @app.route('/question/<question_id>/new_answer', methods=['GET', 'POST'])
@@ -154,10 +157,11 @@ def add_answer(question_id):
         message = request.form['message']
         image_file = request.files['image']
         image_path = util.save_image(image_file) if image_file.filename != '' else None
-        data_manager.add_answer(message, question_id, image_path)
+        user_id = session['user_id']
+        data_manager.add_answer(message, question_id, image_path, user_id)
         return redirect(f'/question/{question_id}')
     elif request.method == 'GET':
-        return render_template('add_answer.html', question_id=question_id)
+        return render_template('add_answer.html', question_id=question_id, is_logged=is_logged())
 
 
 @app.route('/question/<question_id>/delete')
@@ -168,14 +172,12 @@ def delete_question(question_id):
     return redirect('/list')
 
 
-
 @app.route('/answer/<answer_id>/delete')
 @util.is_logged_in
 def delete_answer(answer_id):
     question_id, image_path = data_manager.delete_answer_by_id(answer_id)
     util.delete_image_files([image_path])
     return redirect(f'/question/{question_id}')
-
 
 
 @app.route('/question/<question_id>/edit', methods=['GET', 'POST'])
@@ -201,7 +203,6 @@ def update_question(question_id):
         return redirect(f'/question/{question_id}')
 
 
-
 @app.route('/question/<question_id>/vote_up')
 @util.is_logged_in
 def vote_up_questions(question_id):
@@ -216,7 +217,6 @@ def vote_up_questions(question_id):
     else:
         data_manager.vote_on_question(question_id, 'up')
         return redirect('/list')
-
 
 
 @app.route('/question/<question_id>/vote_down')
@@ -235,7 +235,6 @@ def vote_down_questions(question_id):
         return redirect('/list')
 
 
-
 @app.route('/answer/<answer_id>/vote_up')
 @util.is_logged_in
 def vote_up_answers(answer_id):
@@ -250,17 +249,16 @@ def vote_down_answers(answer_id):
     return redirect(f'/question/{question_id}')
 
 
-
 @app.route('/question/<question_id>/new_comment', methods=['GET', 'POST'])
 @util.is_logged_in
 def add_comment_to_question(question_id):
     if request.method == 'POST':
         new_comment = request.form['message']
-        data_manager.add_comment_question(question_id, new_comment)
+        user_id = session['user_id']
+        data_manager.add_comment_question(question_id, new_comment, user_id)
         return redirect(f'/question/{question_id}')
     elif request.method == 'GET':
-        return render_template('add_comment_to_question.html', question_id=question_id)
-
+        return render_template('add_comment_to_question.html', question_id=question_id, is_logged=is_logged())
 
 
 @app.route('/answer/<answer_id>/new_comment', methods=['GET', 'POST'])
@@ -268,12 +266,13 @@ def add_comment_to_question(question_id):
 def add_comment_to_answer(answer_id):
     if request.method == 'POST':
         message = request.form['message']
-        question_id = data_manager.add_comment_to_answer(answer_id, message)
+        user_id = session['user_id']
+        question_id = data_manager.add_comment_to_answer(answer_id, message, user_id)
         return redirect(f'/question/{question_id}')
     elif request.method == 'GET':
         question_id = data_manager.get_question_id_by_answer_id(answer_id)
-        return render_template('add_comment_to_answer.html', answer_id=answer_id, question_id=question_id)
-
+        return render_template('add_comment_to_answer.html', answer_id=answer_id, question_id=question_id,
+                               is_logged=is_logged())
 
 
 @app.route('/question/<question_id>/new_tag', methods=['GET', 'POST'])
@@ -318,10 +317,10 @@ def search():
         ]
 
         return render_template('search.html', questions=questions, search_phrase=search_phrase,
-                               order_by=order_by, order_direction=order_direction, columns=columns)
+                               order_by=order_by, order_direction=order_direction, columns=columns,
+                               is_logged=is_logged())
     else:
         return redirect('/')
-
 
 
 @app.route('/comments/<comment_id>/delete')
@@ -332,7 +331,6 @@ def delete_comments(comment_id):
     return redirect(f'/question/{question_id}')
 
 
-
 @app.route('/question/<question_id>/delete_image')
 @util.is_logged_in
 def delete_image_to_question(question_id):
@@ -341,14 +339,12 @@ def delete_image_to_question(question_id):
     return redirect(f'/question/{question_id}')
 
 
-
 @app.route('/answer/<answer_id>/delete_image')
 @util.is_logged_in
 def delete_image_to_answer(answer_id):
     question_id, image_path = data_manager.delete_image_from_answer(answer_id)
     util.delete_image_files(image_path)
     return redirect(f'/question/{question_id}')
-
 
 
 @app.route('/comment/<comment_id>/edit', methods=['GET', 'POST'])
@@ -386,7 +382,6 @@ def highlight_search_phrase(value, search_phrase):
     return highlighted_value
 
 
-
 @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
 @util.is_logged_in
 def update_answers(answer_id):
@@ -401,7 +396,6 @@ def update_answers(answer_id):
         data_manager.update_answer(message, answer_id)
         data_manager.update_image(answer_id, image_file)
         return redirect(f"/question/{answer['question_id']}")
-
 
 
 @app.route('/question/<question_id>/tag/<tag_id>/delete')
