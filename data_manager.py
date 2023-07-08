@@ -9,17 +9,51 @@ def add_user(cursor, username, email, hashed_password):
                     INSERT INTO users(username, email, password, registration_date) 
                     VALUES (%s, %s, %s, %s)
                     RETURNING id;""",
-                    (username, email,  hashed_password, registration_date))
+                   (username, email,  hashed_password, registration_date))
     return cursor.fetchone()["id"]
 
+
 @connection.connection_handler
-def get_user_by_name(cursor,username, email):
+def get_user_by_name(cursor, username, email):
     cursor.execute("""
                 SELECT * 
                 FROM users
                 WHERE username = %s  OR email = %s    
-                """, (username,email))
-    return  cursor.fetchone()
+                """, (username, email))
+    return cursor.fetchone()
+
+
+@connection.connection_handler
+def get_users_list(cursor):
+    cursor.execute("""
+                    SELECT username, registration_date, reputation,
+                    (SELECT COUNT(id) FROM question q WHERE u.id = q.user_id) AS questions_number,
+                    (SELECT COUNT(id) FROM answer a WHERE u.id =a.user_id) AS answers_number,
+                    (SELECT COUNT(id) FROM comment c WHERE u.id = c.user_id) AS comments_number
+                    FROM users u;
+                    """)
+    return cursor.fetchall()
+
+
+@connection.connection_handler
+def add_user(cursor, username, email, hashed_password):
+    registration_date = util.get_time()
+    cursor.execute("""
+                    INSERT INTO users(username, email, password, registration_date) 
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING id;""",
+                   (username, email, hashed_password, registration_date))
+    return cursor.fetchone()['id']
+
+
+@connection.connection_handler
+def get_user_by_name(cursor, username, email):
+    cursor.execute("""
+                    SELECT * 
+                    FROM users
+                    WHERE username = %s OR email = %s;""",
+                   (username, email))
+    return cursor.fetchone()
 
 
 @connection.connection_handler
@@ -305,9 +339,11 @@ def delete_comment(cursor, comment_id):
 @connection.connection_handler
 def get_tags(cursor):
     cursor.execute("""
-                    SELECT *
-                    FROM tag;
-                        """)
+                    SELECT t.name, COUNT(q.question_id) AS number_of_questions
+                    FROM tag t
+                    LEFT JOIN question_tag q on t.id = q.tag_id
+                    GROUP BY t.id, t.name;
+                    """)
     tags = cursor.fetchall()
     return tags
 
