@@ -11,6 +11,12 @@ LIST_USERS_HEADERS = ['Username', 'Registration date', 'Number of asked question
                       'Number of comments', 'Reputation']
 
 
+GAIN_REPUTATION_QUESTION = 5
+GAIN_REPUTATION_ANSWER =10
+LOSE_REPUTATION = -2
+GAIN_REPUTATION_ACCEPTED = 15
+
+
 @app.route('/registration', methods=['POST', 'GET'])
 def registration():
     if request.method == 'GET':
@@ -149,6 +155,7 @@ def add_question():
     else:
         return render_template('add_question.html', is_logged=is_logged())
 
+      
 @app.route('/question/<question_id>/new_answer', methods=['GET', 'POST'])
 @util.is_logged_in
 def add_answer(question_id):
@@ -206,15 +213,15 @@ def update_question(question_id):
 @util.is_logged_in
 def vote_up_questions(question_id):
     source = request.args.get('source')
+    question = data_manager.get_question_data_by_id(question_id)
+    data_manager.vote_on_question(question_id, 'up')
+    data_manager.change_reputation(GAIN_REPUTATION_QUESTION, question['user_id'])
     if source == 'question':
-        data_manager.vote_on_question(question_id, 'up')
         return redirect(f'/question/{question_id}')
     elif source == 'search':
         search_phrase = request.args.get('q')
-        data_manager.vote_on_question(question_id, 'up')
         return redirect(url_for('search', q=search_phrase))
     else:
-        data_manager.vote_on_question(question_id, 'up')
         return redirect('/list')
 
 
@@ -222,31 +229,34 @@ def vote_up_questions(question_id):
 @util.is_logged_in
 def vote_down_questions(question_id):
     source = request.args.get('source')
+    question = data_manager.get_question_data_by_id(question_id)
+    data_manager.vote_on_question(question_id, 'down')
+    data_manager.change_reputation(LOSE_REPUTATION, question['user_id'])
     if source == 'question':
-        data_manager.vote_on_question(question_id, 'down')
         return redirect(f'/question/{question_id}')
     elif source == 'search':
         search_phrase = request.args.get('q')
-        data_manager.vote_on_question(question_id, 'down')
         return redirect(url_for('search', q=search_phrase))
     else:
-        data_manager.vote_on_question(question_id, 'down')
         return redirect('/list')
 
 
 @app.route('/answer/<answer_id>/vote_up')
 @util.is_logged_in
 def vote_up_answers(answer_id):
-    question_id = data_manager.vote_on_answer(answer_id, "up")
-    return redirect(f'/question/{question_id}')
+    data_manager.vote_on_answer(answer_id, "up")
+    answer = data_manager.get_answer_by_id(answer_id)
+    data_manager.change_reputation(GAIN_REPUTATION_ANSWER, answer['user_id'])
+    return redirect(f"/question/{answer['question_id']}")
 
 
 @app.route('/answer/<answer_id>/vote_down')
 @util.is_logged_in
 def vote_down_answers(answer_id):
-    question_id = data_manager.vote_on_answer(answer_id, "down")
-    return redirect(f'/question/{question_id}')
-
+    data_manager.vote_on_answer(answer_id, "down")
+    answer = data_manager.get_answer_by_id(answer_id)
+    data_manager.change_reputation(LOSE_REPUTATION, answer['user_id'])
+    return redirect(f"/question/{answer['question_id']}")
 
 @app.route('/question/<question_id>/new_comment', methods=['GET', 'POST'])
 @util.is_logged_in
@@ -258,6 +268,7 @@ def add_comment_to_question(question_id):
         return redirect(f'/question/{question_id}')
     elif request.method == 'GET':
         return render_template('add_comment_to_question.html', question_id=question_id, is_logged=is_logged())
+
 
 @app.route('/answer/<answer_id>/new_comment', methods=['GET', 'POST'])
 @util.is_logged_in
@@ -271,6 +282,7 @@ def add_comment_to_answer(answer_id):
         question_id = data_manager.get_question_id_by_answer_id(answer_id)
         return render_template('add_comment_to_answer.html', answer_id=answer_id, question_id=question_id,
                                is_logged=is_logged())
+
 
 @app.route('/question/<question_id>/new_tag', methods=['GET', 'POST'])
 @util.is_logged_in

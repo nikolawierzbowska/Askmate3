@@ -245,12 +245,18 @@ def vote_on_answer(cursor, answer_id, vote_direction):
                         WHEN %(vote_direction)s = 'down' THEN vote_number - 1
                         ELSE vote_number
                     END
-                    WHERE id = %(answer_id)s
-                    RETURNING question_id;
+                    WHERE id = %(answer_id)s;
                     """, {'answer_id': answer_id,
                           'vote_direction': vote_direction})
-    question_id = cursor.fetchone()['question_id']
-    return question_id
+
+
+@connection.connection_handler
+def change_reputation(cursor, number, user_id):
+    cursor.execute("""
+            UPDATE users
+            SET reputation = reputation + %(number)s
+            WHERE id = %(user_id)s
+            """, {'number': number, 'user_id': user_id})
 
 
 @connection.connection_handler
