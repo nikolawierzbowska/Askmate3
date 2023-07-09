@@ -9,17 +9,18 @@ def add_user(cursor, username, email, hashed_password):
                     INSERT INTO users(username, email, password, registration_date) 
                     VALUES (%s, %s, %s, %s)
                     RETURNING id;""",
-                    (username, email,  hashed_password, registration_date))
+                   (username, email, hashed_password, registration_date))
     return cursor.fetchone()["id"]
 
+
 @connection.connection_handler
-def get_user_by_name(cursor,username, email):
+def get_user_by_name(cursor, username, email):
     cursor.execute("""
                 SELECT * 
                 FROM users
                 WHERE username = %s  OR email = %s    
-                """, (username,email))
-    return  cursor.fetchone()
+                """, (username, email))
+    return cursor.fetchone()
 
 
 @connection.connection_handler
@@ -232,12 +233,18 @@ def vote_on_answer(cursor, answer_id, vote_direction):
                         WHEN %(vote_direction)s = 'down' THEN vote_number - 1
                         ELSE vote_number
                     END
-                    WHERE id = %(answer_id)s
-                    RETURNING question_id;
+                    WHERE id = %(answer_id)s;
                     """, {'answer_id': answer_id,
                           'vote_direction': vote_direction})
-    question_id = cursor.fetchone()['question_id']
-    return question_id
+
+
+@connection.connection_handler
+def change_reputation(cursor, number, user_id):
+    cursor.execute("""
+            UPDATE users
+            SET reputation = reputation + %(number)s
+            WHERE id = %(user_id)s
+            """, {'number': number, 'user_id': user_id})
 
 
 @connection.connection_handler

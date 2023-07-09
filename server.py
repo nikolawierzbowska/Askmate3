@@ -11,15 +11,20 @@ LIST_USERS_HEADERS = ['Username', 'Registration date', 'Number of asked question
                       'Number of comments', 'Reputation']
 
 
-@app.route('/registration', methods=['GET', 'POST'])
+GAIN_REPUTATION_QUESTION = 5
+GAIN_REPUTATION_ANSWER =10
+LOSE_REPUTATION = -2
+GAIN_REPUTATION_ACCEPTED = 15
+
+@app.route('/registration', methods=['POST', 'GET'])
 def registration():
     if request.method == "GET":
         return render_template("registration.html")
     else:
-        username = request.form["username"]
-        email = request.form["email"]
-        password = request.form["password"]
-        repeat_password = request.form["repeat_password"]
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        repeat_password = request.form['repeat_password']
 
         errors = []
 
@@ -146,7 +151,6 @@ def add_question():
         return render_template('add_question.html')
 
 
-
 @app.route('/question/<question_id>/new_answer', methods=['GET', 'POST'])
 @util.is_logged_in
 def add_answer(question_id):
@@ -168,14 +172,12 @@ def delete_question(question_id):
     return redirect('/list')
 
 
-
 @app.route('/answer/<answer_id>/delete')
 @util.is_logged_in
 def delete_answer(answer_id):
     question_id, image_path = data_manager.delete_answer_by_id(answer_id)
     util.delete_image_files([image_path])
     return redirect(f'/question/{question_id}')
-
 
 
 @app.route('/question/<question_id>/edit', methods=['GET', 'POST'])
@@ -201,54 +203,54 @@ def update_question(question_id):
         return redirect(f'/question/{question_id}')
 
 
-
 @app.route('/question/<question_id>/vote_up')
 @util.is_logged_in
 def vote_up_questions(question_id):
     source = request.args.get('source')
+    question = data_manager.get_question_data_by_id(question_id)
+    data_manager.vote_on_question(question_id, 'up')
+    data_manager.change_reputation(GAIN_REPUTATION_QUESTION, question['user_id'])
     if source == 'question':
-        data_manager.vote_on_question(question_id, 'up')
         return redirect(f'/question/{question_id}')
     elif source == 'search':
         search_phrase = request.args.get('q')
-        data_manager.vote_on_question(question_id, 'up')
         return redirect(url_for('search', q=search_phrase))
     else:
-        data_manager.vote_on_question(question_id, 'up')
         return redirect('/list')
-
 
 
 @app.route('/question/<question_id>/vote_down')
 @util.is_logged_in
 def vote_down_questions(question_id):
     source = request.args.get('source')
+    question = data_manager.get_question_data_by_id(question_id)
+    data_manager.vote_on_question(question_id, 'down')
+    data_manager.change_reputation(LOSE_REPUTATION, question['user_id'])
     if source == 'question':
-        data_manager.vote_on_question(question_id, 'down')
         return redirect(f'/question/{question_id}')
     elif source == 'search':
         search_phrase = request.args.get('q')
-        data_manager.vote_on_question(question_id, 'down')
         return redirect(url_for('search', q=search_phrase))
     else:
-        data_manager.vote_on_question(question_id, 'down')
         return redirect('/list')
-
 
 
 @app.route('/answer/<answer_id>/vote_up')
 @util.is_logged_in
 def vote_up_answers(answer_id):
-    question_id = data_manager.vote_on_answer(answer_id, "up")
-    return redirect(f'/question/{question_id}')
+    data_manager.vote_on_answer(answer_id, "up")
+    answer = data_manager.get_answer_by_id(answer_id)
+    data_manager.change_reputation(GAIN_REPUTATION_ANSWER, answer['user_id'])
+    return redirect(f"/question/{answer['question_id']}")
 
 
 @app.route('/answer/<answer_id>/vote_down')
 @util.is_logged_in
 def vote_down_answers(answer_id):
-    question_id = data_manager.vote_on_answer(answer_id, "down")
-    return redirect(f'/question/{question_id}')
-
+    data_manager.vote_on_answer(answer_id, "down")
+    answer = data_manager.get_answer_by_id(answer_id)
+    data_manager.change_reputation(LOSE_REPUTATION, answer['user_id'])
+    return redirect(f"/question/{answer['question_id']}")
 
 
 @app.route('/question/<question_id>/new_comment', methods=['GET', 'POST'])
@@ -262,7 +264,6 @@ def add_comment_to_question(question_id):
         return render_template('add_comment_to_question.html', question_id=question_id)
 
 
-
 @app.route('/answer/<answer_id>/new_comment', methods=['GET', 'POST'])
 @util.is_logged_in
 def add_comment_to_answer(answer_id):
@@ -273,7 +274,6 @@ def add_comment_to_answer(answer_id):
     elif request.method == 'GET':
         question_id = data_manager.get_question_id_by_answer_id(answer_id)
         return render_template('add_comment_to_answer.html', answer_id=answer_id, question_id=question_id)
-
 
 
 @app.route('/question/<question_id>/new_tag', methods=['GET', 'POST'])
@@ -323,14 +323,12 @@ def search():
         return redirect('/')
 
 
-
 @app.route('/comments/<comment_id>/delete')
 @util.is_logged_in
 def delete_comments(comment_id):
     question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
     data_manager.delete_comment(comment_id)
     return redirect(f'/question/{question_id}')
-
 
 
 @app.route('/question/<question_id>/delete_image')
@@ -341,14 +339,12 @@ def delete_image_to_question(question_id):
     return redirect(f'/question/{question_id}')
 
 
-
 @app.route('/answer/<answer_id>/delete_image')
 @util.is_logged_in
 def delete_image_to_answer(answer_id):
     question_id, image_path = data_manager.delete_image_from_answer(answer_id)
     util.delete_image_files(image_path)
     return redirect(f'/question/{question_id}')
-
 
 
 @app.route('/comment/<comment_id>/edit', methods=['GET', 'POST'])
@@ -386,7 +382,6 @@ def highlight_search_phrase(value, search_phrase):
     return highlighted_value
 
 
-
 @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
 @util.is_logged_in
 def update_answers(answer_id):
@@ -401,7 +396,6 @@ def update_answers(answer_id):
         data_manager.update_answer(message, answer_id)
         data_manager.update_image(answer_id, image_file)
         return redirect(f"/question/{answer['question_id']}")
-
 
 
 @app.route('/question/<question_id>/tag/<tag_id>/delete')
