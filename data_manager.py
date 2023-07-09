@@ -36,6 +36,16 @@ def get_users_list(cursor):
 
 
 @connection.connection_handler
+def get_user_id(cursor, username, email):
+    cursor.execute("""
+                   SELECT id
+                   FROM users
+                   WHERE username = %s  OR email = %s 
+                   """, (username, email))
+    return cursor.fetchone()
+
+
+@connection.connection_handler
 def get_sorted_questions(cursor, order_by, order_direction, questions=None):
     if questions is None:
         order = 'ASC' if order_direction.upper() == 'ASC' else 'DESC'
@@ -95,34 +105,36 @@ def get_answers_by_question_id(cursor, question_id):
 
 
 @connection.connection_handler
-def add_question(cursor, title, message, image_path):
+def add_question(cursor, title, message, image_path, user_id):
     submission_time = util.get_time()
     cursor.execute("""
-                    INSERT INTO question(submission_time, view_number, vote_number, title, message)
-                    VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s)
+                    INSERT INTO question(submission_time, view_number, vote_number, title, message, user_id)
+                    VALUES (%(submission_time)s, %(view_number)s, %(vote_number)s, %(title)s, %(message)s, %(user_id)s)
                     RETURNING id;""",
                    {'submission_time': submission_time,
                     'vote_number': 0,
                     'view_number': 0,
                     'title': title,
-                    'message': message})
+                    'message': message,
+                    'user_id': user_id})
     new_question_id = cursor.fetchone()['id']
     update_image_in_question(new_question_id, image_path)
     return new_question_id
 
 
 @connection.connection_handler
-def add_answer(cursor, message, question_id, image_path):
+def add_answer(cursor, message, question_id, image_path, user_id):
     submission_time = util.get_time()
     cursor.execute("""
-                    INSERT INTO answer(submission_time, vote_number, message, question_id, image)
-                    VALUES (%(submission_time)s, %(vote_number)s, %(message)s, %(question_id)s, %(image)s);
+                    INSERT INTO answer(submission_time, vote_number, message, question_id, image, user_id)
+                    VALUES (%(submission_time)s, %(vote_number)s, %(message)s, %(question_id)s, %(image)s, %(user_id)s);
                     """,
                    {'submission_time': submission_time,
                     'vote_number': 0,
                     'message': message,
                     'question_id': question_id,
-                    'image': image_path})
+                    'image': image_path,
+                    'user_id': user_id})
 
 
 @connection.connection_handler
@@ -259,14 +271,15 @@ def get_comments_by_question_id(cursor, question_id):
 
 
 @connection.connection_handler
-def add_comment_question(cursor, question_id, message):
+def add_comment_question(cursor, question_id, message, user_id):
     submission_time = util.get_time()
     cursor.execute("""
-                    INSERT INTO comment(question_id, message,submission_time)
-                    VALUES (%(question_id)s, %(message)s, %(submission_time)s);
+                    INSERT INTO comment(question_id, message,submission_time, user_id)
+                    VALUES (%(question_id)s, %(message)s, %(submission_time)s, %(user_id)s);
                     """, {'question_id': question_id,
                           'message': message,
-                          'submission_time': submission_time})
+                          'submission_time': submission_time,
+                          'user_id': user_id})
 
 
 @connection.connection_handler
@@ -282,18 +295,19 @@ def get_comments_of_answers(cursor, question_id):
 
 
 @connection.connection_handler
-def add_comment_to_answer(cursor, answer_id, message):
+def add_comment_to_answer(cursor, answer_id, message, user_id):
     submission_time = util.get_time()
     cursor.execute("""
-                    INSERT INTO comment(answer_id, message, submission_time)
-                    VALUES (%(answer_id)s, %(message)s, %(submission_time)s);
+                    INSERT INTO comment(answer_id, message, submission_time, user_id)
+                    VALUES (%(answer_id)s, %(message)s, %(submission_time)s, %(user_id)s);
                     
                     SELECT question_id
                     FROM answer
                     WHERE id = %(answer_id)s;
                     """, {'answer_id': answer_id,
                           'message': message,
-                          'submission_time': submission_time})
+                          'submission_time': submission_time,
+                          'user_id': user_id})
     question_id = cursor.fetchone()['question_id']
     return question_id
 
@@ -312,9 +326,11 @@ def delete_comment(cursor, comment_id):
 @connection.connection_handler
 def get_tags(cursor):
     cursor.execute("""
-                    SELECT *
-                    FROM tag;
-                        """)
+                    SELECT t.name, COUNT(q.question_id) AS number_of_questions
+                    FROM tag t
+                    LEFT JOIN question_tag q on t.id = q.tag_id
+                    GROUP BY t.id, t.name;
+                    """)
     tags = cursor.fetchall()
     return tags
 
