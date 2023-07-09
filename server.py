@@ -11,15 +11,15 @@ LIST_USERS_HEADERS = ['Username', 'Registration date', 'Number of asked question
                       'Number of comments', 'Reputation']
 
 
-@app.route('/registration', methods=['GET', 'POST'])
+@app.route('/registration', methods=['POST', 'GET'])
 def registration():
     if request.method == 'GET':
         return render_template("registration.html")
     else:
-        username = request.form["username"]
-        email = request.form["email"]
-        password = request.form["password"]
-        repeat_password = request.form["repeat_password"]
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        repeat_password = request.form['repeat_password']
 
         errors = []
 
@@ -149,7 +149,6 @@ def add_question():
     else:
         return render_template('add_question.html', is_logged=is_logged())
 
-
 @app.route('/question/<question_id>/new_answer', methods=['GET', 'POST'])
 @util.is_logged_in
 def add_answer(question_id):
@@ -260,7 +259,6 @@ def add_comment_to_question(question_id):
     elif request.method == 'GET':
         return render_template('add_comment_to_question.html', question_id=question_id, is_logged=is_logged())
 
-
 @app.route('/answer/<answer_id>/new_comment', methods=['GET', 'POST'])
 @util.is_logged_in
 def add_comment_to_answer(answer_id):
@@ -273,7 +271,6 @@ def add_comment_to_answer(answer_id):
         question_id = data_manager.get_question_id_by_answer_id(answer_id)
         return render_template('add_comment_to_answer.html', answer_id=answer_id, question_id=question_id,
                                is_logged=is_logged())
-
 
 @app.route('/question/<question_id>/new_tag', methods=['GET', 'POST'])
 @util.is_logged_in

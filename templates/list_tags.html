@@ -1,0 +1,38 @@
+{% extends 'layout_table.html' %}
+{% block title %}Tags{% endblock %}
+{% block page_header %}List of tags{% endblock %}
+{% block options %}
+<div class="menu">
+    <p>
+        <a href="/">
+            <button>Main</button>
+        </a>
+    </p>
+</div>
+{% endblock %}
+{% block body %}
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    <div class="header-cell">
+                        Name of tag
+                    </div>
+                </th>
+                <th>
+                    <div class="header-cell">
+                        Number of questions
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tag in tags %}
+            <tr>
+                <td>{{ tag.name }}</td>
+                <td>{{ tag.number_of_questions }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
