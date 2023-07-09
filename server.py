@@ -49,7 +49,7 @@ def login():
     if request.method == 'GET':
         return render_template("login.html")
     else:
-        username_email = request.form['username']
+        username_email = request.form['username_email']
         password = request.form['password']
         errors = []
         user = data_manager.get_user_by_name(username_email, username_email)
@@ -62,6 +62,7 @@ def login():
         if is_password_correct:
             session['username_email'] = username_email
             session['is_logged'] = True
+            session['user_id'] = user['id']
             return render_template("user_page.html")
         else:
             return render_template("login.html", errors=['Password incorrect!'])
@@ -142,11 +143,11 @@ def add_question():
         message = request.form['message']
         image_file = request.files['image']
         image_path = util.save_image(image_file) if image_file.filename != '' else None
-        new_question_id = data_manager.add_question(title, message, image_path)
+        user_id = session['user_id']
+        new_question_id = data_manager.add_question(title, message, image_path, user_id)
         return redirect(f'/question/{new_question_id}')
     else:
-        return render_template('add_question.html')
-
+        return render_template('add_question.html', is_logged=is_logged())
 
 @app.route('/question/<question_id>/new_answer', methods=['GET', 'POST'])
 @util.is_logged_in
@@ -155,10 +156,11 @@ def add_answer(question_id):
         message = request.form['message']
         image_file = request.files['image']
         image_path = util.save_image(image_file) if image_file.filename != '' else None
-        data_manager.add_answer(message, question_id, image_path)
+        user_id = session['user_id']
+        data_manager.add_answer(message, question_id, image_path, user_id)
         return redirect(f'/question/{question_id}')
     elif request.method == 'GET':
-        return render_template('add_answer.html', question_id=question_id)
+        return render_template('add_answer.html', question_id=question_id, is_logged=is_logged())
 
 
 @app.route('/question/<question_id>/delete')
@@ -251,23 +253,24 @@ def vote_down_answers(answer_id):
 def add_comment_to_question(question_id):
     if request.method == 'POST':
         new_comment = request.form['message']
-        data_manager.add_comment_question(question_id, new_comment)
+        user_id = session['user_id']
+        data_manager.add_comment_question(question_id, new_comment, user_id)
         return redirect(f'/question/{question_id}')
     elif request.method == 'GET':
-        return render_template('add_comment_to_question.html', question_id=question_id)
-
+        return render_template('add_comment_to_question.html', question_id=question_id, is_logged=is_logged())
 
 @app.route('/answer/<answer_id>/new_comment', methods=['GET', 'POST'])
 @util.is_logged_in
 def add_comment_to_answer(answer_id):
     if request.method == 'POST':
         message = request.form['message']
-        question_id = data_manager.add_comment_to_answer(answer_id, message)
+        user_id = session['user_id']
+        question_id = data_manager.add_comment_to_answer(answer_id, message, user_id)
         return redirect(f'/question/{question_id}')
     elif request.method == 'GET':
         question_id = data_manager.get_question_id_by_answer_id(answer_id)
-        return render_template('add_comment_to_answer.html', answer_id=answer_id, question_id=question_id)
-
+        return render_template('add_comment_to_answer.html', answer_id=answer_id, question_id=question_id,
+                               is_logged=is_logged())
 
 @app.route('/question/<question_id>/new_tag', methods=['GET', 'POST'])
 @util.is_logged_in
