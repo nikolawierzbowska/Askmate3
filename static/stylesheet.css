@@ -143,3 +143,7 @@ textarea {
 .button-container button {
     margin-right: 5px;
 }
+
+.accepted {
+    font-weight: bold;
+}
