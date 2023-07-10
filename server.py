@@ -12,9 +12,10 @@ LIST_USERS_HEADERS = ['Username', 'Registration date', 'Number of asked question
 
 
 GAIN_REPUTATION_QUESTION = 5
-GAIN_REPUTATION_ANSWER =10
+GAIN_REPUTATION_ANSWER = 10
 LOSE_REPUTATION = -2
 GAIN_REPUTATION_ACCEPTED = 15
+LOSE_REPUTATION_ACCEPTED = -15
 
 
 @app.route('/registration', methods=['POST', 'GET'])
@@ -113,7 +114,16 @@ def mark_unmark_answer_as_accepted(answer_id):
 
     if question['user_id'] == user_id:
         accepted = not answer['is_accepted']
-        data_manager.mark_unmark_answer_as_accepted(answer_id, accepted)
+        if accepted and not answer['reputation_status']:
+            data_manager.mark_unmark_answer_as_accepted(answer_id, accepted)
+            author_id = answer['user_id']
+            data_manager.change_reputation(GAIN_REPUTATION_ACCEPTED, author_id)
+            data_manager.update_reputation_gained(answer_id, True)
+        elif not accepted and answer['reputation_status']:
+            data_manager.mark_unmark_answer_as_accepted(answer_id, accepted)
+            author_id = answer['user_id']
+            data_manager.change_reputation(LOSE_REPUTATION_ACCEPTED, author_id)
+            data_manager.update_reputation_gained(answer_id, False)
 
     return redirect(f'/question/{question_id}')
 

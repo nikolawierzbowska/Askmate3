@@ -46,6 +46,15 @@
 </div>
 {% endblock %}
 {% block body %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message[1] }}">{{ message[0] }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
 <table>
     <tr>
         <th>Question</th>
