@@ -103,6 +103,21 @@ def list_tags():
     return render_template('list_tags.html', tags=tags)
 
 
+@app.route('/answers/<answer_id>/mark_unmark_accepted', methods=['POST'])
+@util.is_logged_in
+def mark_unmark_answer_as_accepted(answer_id):
+    user_id = session['user_id']
+    answer = data_manager.get_answer_by_id(answer_id)
+    question_id = answer['question_id']
+    question = data_manager.get_question_data_by_id(question_id)
+
+    if question['user_id'] == user_id:
+        accepted = not answer['is_accepted']
+        data_manager.mark_unmark_answer_as_accepted(answer_id, accepted)
+
+    return redirect(f'/question/{question_id}')
+
+
 @app.route('/')
 def main_page():
     questions = data_manager.get_sorted_questions("submission_time", "DESC")

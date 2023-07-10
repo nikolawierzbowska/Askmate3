@@ -131,9 +131,9 @@
         <th>Date</th>
         <th>Votes</th>
         <th>Answers</th>
+        <th>Accepted</th>
         <th>Image</th>
     </tr>
-
     {% for answer in answers %}
         <tr>
             <td>{{ answer.submission_time }}</td>
@@ -148,7 +148,7 @@
             </td>
             <td>
                 <div class="cell-content cell-text">
-                    {{ answer.message }}
+                    <span {% if answer.is_accepted %}class="accepted"{% endif %}>{{ answer.message }}</span>
                     <span class="edit-delete-buttons small-icon">
                         <a href="/answer/{{ answer.id }}/delete">
                             <button type="button" id="remove_image" name="">&#10060;</button>
@@ -199,6 +199,17 @@
                         {% endif %}
                     {% endfor %}
                 </table>
+            </td>
+            <td>
+                {% if not answer.is_accepted %}
+                    <form action="/answers/{{ answer.id }}/mark_unmark_accepted" method="post">
+                        <button type="submit">Mark as Accepted</button>
+                    </form>
+                {% else %}
+                    <form action="/answers/{{ answer.id }}/mark_unmark_accepted" method="post">
+                        <button type="submit">Unmark Accepted</button>
+                    </form>
+                {% endif %}
             </td>
             <td>
                 <div class="remove_img">

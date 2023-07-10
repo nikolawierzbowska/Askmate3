@@ -46,6 +46,16 @@ def get_user_id(cursor, username, email):
 
 
 @connection.connection_handler
+def mark_unmark_answer_as_accepted(cursor, answer_id, accepted):
+    cursor.execute("""
+                    UPDATE answer
+                    SET is_accepted = %(accepted)s
+                    WHERE id = %(answer_id)s;
+                    """,
+                   {'answer_id': answer_id, 'accepted': accepted})
+
+
+@connection.connection_handler
 def get_sorted_questions(cursor, order_by, order_direction, questions=None):
     if questions is None:
         order = 'ASC' if order_direction.upper() == 'ASC' else 'DESC'
