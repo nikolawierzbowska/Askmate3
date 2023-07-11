@@ -70,7 +70,7 @@ def login():
             session['username_email'] = username_email
             session['is_logged'] = True
             session['user_id'] = user['id']
-            return render_template("user_page.html")
+            return redirect(f"/user/{user['id']}")
         else:
             return render_template("login.html", errors=['Password incorrect!'])
 
@@ -126,6 +126,17 @@ def mark_unmark_answer_as_accepted(answer_id):
             data_manager.update_reputation_gained(answer_id, False)
 
     return redirect(f'/question/{question_id}')
+
+
+@app.route('/user/<user_id>')
+@util.is_logged_in
+def user_detail_page(user_id):
+    users = data_manager.get_users_list()
+    user = next(user for user in users if user['id'] == int(user_id))
+    questions = data_manager.get_questions_by_user_id(user_id)
+    answers = data_manager.get_answers_by_user_id(user_id)
+    comments = data_manager.get_comments_by_user_id(user_id)
+    return render_template('user_details_page.html', user=user, questions=questions, answers=answers, comments=comments)
 
 
 @app.route('/')
@@ -282,6 +293,7 @@ def vote_down_answers(answer_id):
     answer = data_manager.get_answer_by_id(answer_id)
     data_manager.change_reputation(LOSE_REPUTATION, answer['user_id'])
     return redirect(f"/question/{answer['question_id']}")
+
 
 @app.route('/question/<question_id>/new_comment', methods=['GET', 'POST'])
 @util.is_logged_in
