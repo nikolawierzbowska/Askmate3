@@ -1,0 +1,84 @@
+{%  extends 'layout_table.html' %}
+{% block title %}User page{% endblock %}
+{% block page_header %}User Profile{% endblock %}
+
+{% block options %}
+    <p><a href="/"><button>Main page</button></a></p>
+    <p><a href="/users"><button>Users</button></a></p>
+
+
+    <h2>User Details</h2>
+    <table>
+        <tr>
+            <th>User ID</th>
+            <th>Username</th>
+            <th>Registration Date</th>
+            <th>Number of Asked Questions</th>
+            <th>Number of Answers</th>
+            <th>Number of Comments</th>
+            <th>Reputation</th>
+        </tr>
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.registration_date }}</td>
+            <td>{{ user.questions_number }}</td>
+            <td>{{ user.answers_number }}</td>
+            <td>{{ user.comments_number }}</td>
+            <td>{{ user.reputation }}</td>
+        </tr>
+    </table>
+
+    <h2>Questions</h2>
+    <table>
+        <tr>
+            <th>Title</th>
+            <th>Message</th>
+            <th>Image</th>
+        </tr>
+        {% for question in questions %}
+        <tr>
+            <td><a href="/question/{{ question.id }}">{{ question.title }}</a></td>
+            <td>{{ question.message }}</td>
+            <td>
+                {% if question.image %}
+                    <img src="../{{ question.image }}" alt="Question Image" style="max-width: 150px;">
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Answers</h2>
+    <table>
+        <tr>
+            <th>Message</th>
+            <th>Image</th>
+        </tr>
+        {% for answer in answers %}
+            {% while True %}
+            {% endwhile %}
+        <tr>
+            <td><a href="/question/{{ answer.question_id }}">{{ answer.message }}</a></td>
+            <td>
+                {% if answer.image %}
+                    <img src="../{{ answer.image }}" alt="Question Image" style="max-width: 150px;">
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Comments</h2>
+    <table>
+        <tr>
+            <th>Message</th>
+        </tr>
+        {% for comment in comments %}
+        <tr>
+            <td><a href="/question/{{ comment.question_id }}">{{ comment.message }}</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

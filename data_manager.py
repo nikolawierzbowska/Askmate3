@@ -26,23 +26,13 @@ def get_user_by_name(cursor, username, email):
 @connection.connection_handler
 def get_users_list(cursor):
     cursor.execute("""
-                    SELECT username, registration_date, reputation,
+                    SELECT id, username, registration_date, reputation,
                     (SELECT COUNT(id) FROM question q WHERE u.id = q.user_id) AS questions_number,
                     (SELECT COUNT(id) FROM answer a WHERE u.id =a.user_id) AS answers_number,
                     (SELECT COUNT(id) FROM comment c WHERE u.id = c.user_id) AS comments_number
                     FROM users u;
                     """)
     return cursor.fetchall()
-
-
-@connection.connection_handler
-def get_user_id(cursor, username, email):
-    cursor.execute("""
-                   SELECT id
-                   FROM users
-                   WHERE username = %s  OR email = %s 
-                   """, (username, email))
-    return cursor.fetchone()
 
 
 @connection.connection_handler
@@ -63,6 +53,36 @@ def update_reputation_gained(cursor, answer_id, reputation_gained):
                     WHERE id = %(answer_id)s;
                     """,
                    {'answer_id': answer_id, 'reputation_gained': reputation_gained})
+
+
+@connection.connection_handler
+def get_questions_by_user_id(cursor, user_id):
+    cursor.execute("""
+                    SELECT id, title, message, image
+                    FROM question
+                    WHERE user_id = %s;
+                    """, user_id)
+    return cursor.fetchall()
+
+
+@connection.connection_handler
+def get_answers_by_user_id(cursor, user_id):
+    cursor.execute("""
+                    SELECT id, question_id, message, image
+                    FROM answer
+                    WHERE user_id = %s;
+                    """, user_id)
+    return cursor.fetchall()
+
+
+@connection.connection_handler
+def get_comments_by_user_id(cursor, user_id):
+    cursor.execute("""
+                    SELECT id, question_id, message
+                    FROM comment
+                    WHERE user_id = %s;
+                    """, user_id)
+    return cursor.fetchall()
 
 
 @connection.connection_handler
