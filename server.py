@@ -3,19 +3,10 @@ from flask import Flask, render_template, request, redirect, url_for, session
 
 import data_manager
 import util
+import config
 
 app = Flask(__name__)
 app.secret_key = "96449384-97ca-4e24-bdec-58a7dc8f59fc"
-
-LIST_USERS_HEADERS = ['Username', 'Registration date', 'Number of asked questions', 'Number of answers',
-                      'Number of comments', 'Reputation']
-
-
-GAIN_REPUTATION_QUESTION = 5
-GAIN_REPUTATION_ANSWER = 10
-LOSE_REPUTATION = -2
-GAIN_REPUTATION_ACCEPTED = 15
-LOSE_REPUTATION_ACCEPTED = -15
 
 
 @app.route('/registration', methods=['POST', 'GET'])
@@ -33,13 +24,15 @@ def registration():
         if not password == repeat_password:
             errors.append("Passwords not match")
 
-        if 3 > len(password) > 20:
-            errors.append("Password should have from 3 to 20 characters.")
-        if 4 > len(username) > 50:
-            errors.append("Username should have from 4 to 50 characters.")
+        if len(password) not in config.PASSWORD_LENGTH:
+            errors.append(f"Password should have from {config.PASSWORD_LENGTH_MIN} to {config.PASSWORD_LENGTH_MAX} "
+                          f"characters.")
+        if len(username) not in config.USERNAME_LENGTH:
+            errors.append(f"Username should have from {config.USERNAME_LENGTH_MIN} to {config.USERNAME_LENGTH_MAX} "
+                          f"characters.")
         if data_manager.get_user_by_name(username, email):
             errors.append("User with this name or email already exists.")
-        if len(errors) > 0:
+        if len(errors):
             return render_template("registration.html", errors=errors)
 
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
@@ -95,7 +88,7 @@ def logout():
 @util.is_logged_in
 def list_users():
     users = data_manager.get_users_list()
-    return render_template('list_users.html', users=users, LIST_USERS_HEADERS=LIST_USERS_HEADERS)
+    return render_template('list_users.html', users=users, LIST_USERS_HEADERS=config.LIST_USERS_HEADERS)
 
 
 @app.route('/tags')
@@ -117,12 +110,12 @@ def mark_unmark_answer_as_accepted(answer_id):
         if accepted and not answer['reputation_status']:
             data_manager.mark_unmark_answer_as_accepted(answer_id, accepted)
             author_id = answer['user_id']
-            data_manager.change_reputation(GAIN_REPUTATION_ACCEPTED, author_id)
+            data_manager.change_reputation(config.GAIN_REPUTATION_ACCEPTED, author_id)
             data_manager.update_reputation_gained(answer_id, True)
         elif not accepted and answer['reputation_status']:
             data_manager.mark_unmark_answer_as_accepted(answer_id, accepted)
             author_id = answer['user_id']
-            data_manager.change_reputation(LOSE_REPUTATION_ACCEPTED, author_id)
+            data_manager.change_reputation(config.LOSE_REPUTATION_ACCEPTED, author_id)
             data_manager.update_reputation_gained(answer_id, False)
 
     return redirect(f'/question/{question_id}')
@@ -251,7 +244,7 @@ def vote_up_questions(question_id):
     source = request.args.get('source')
     question = data_manager.get_question_data_by_id(question_id)
     data_manager.vote_on_question(question_id, 'up')
-    data_manager.change_reputation(GAIN_REPUTATION_QUESTION, question['user_id'])
+    data_manager.change_reputation(config.GAIN_REPUTATION_QUESTION, question['user_id'])
     if source == 'question':
         return redirect(f'/question/{question_id}')
     elif source == 'search':
@@ -267,7 +260,7 @@ def vote_down_questions(question_id):
     source = request.args.get('source')
     question = data_manager.get_question_data_by_id(question_id)
     data_manager.vote_on_question(question_id, 'down')
-    data_manager.change_reputation(LOSE_REPUTATION, question['user_id'])
+    data_manager.change_reputation(config.LOSE_REPUTATION, question['user_id'])
     if source == 'question':
         return redirect(f'/question/{question_id}')
     elif source == 'search':
@@ -282,7 +275,7 @@ def vote_down_questions(question_id):
 def vote_up_answers(answer_id):
     data_manager.vote_on_answer(answer_id, "up")
     answer = data_manager.get_answer_by_id(answer_id)
-    data_manager.change_reputation(GAIN_REPUTATION_ANSWER, answer['user_id'])
+    data_manager.change_reputation(config.GAIN_REPUTATION_ANSWER, answer['user_id'])
     return redirect(f"/question/{answer['question_id']}")
 
 
@@ -291,7 +284,7 @@ def vote_up_answers(answer_id):
 def vote_down_answers(answer_id):
     data_manager.vote_on_answer(answer_id, "down")
     answer = data_manager.get_answer_by_id(answer_id)
-    data_manager.change_reputation(LOSE_REPUTATION, answer['user_id'])
+    data_manager.change_reputation(config.LOSE_REPUTATION, answer['user_id'])
     return redirect(f"/question/{answer['question_id']}")
 
 
@@ -452,4 +445,4 @@ def delete_tag(question_id, tag_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=5001)
