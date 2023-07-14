@@ -68,12 +68,6 @@ def login():
             return render_template("login.html", errors=['Password incorrect!'])
 
 
-@app.route('/user_page', methods=['GET'])
-@util.is_logged_in
-def user_page():
-    return render_template("user_page.html", is_logged=is_logged())
-
-
 def is_logged():
     return "is_logged" in session and session["is_logged"]
 
@@ -202,26 +196,38 @@ def add_answer(question_id):
 @app.route('/question/<question_id>/delete')
 @util.is_logged_in
 def delete_question(question_id):
-    image_paths = data_manager.delete_question(question_id)
-    util.delete_image_files(image_paths)
-    return redirect('/list')
+    user_id = session['user_id']
+    if user_id  == data_manager.get_user_id_by_question_id(question_id):
+        image_paths = data_manager.delete_question(question_id)
+        util.delete_image_files(image_paths)
+        return redirect('/list')
+    else:
+        return redirect(f'/question/{question_id}')
 
 
 @app.route('/answer/<answer_id>/delete')
 @util.is_logged_in
 def delete_answer(answer_id):
-    question_id, image_path = data_manager.delete_answer_by_id(answer_id)
-    util.delete_image_files([image_path])
-    return redirect(f'/question/{question_id}')
+    user_id = session['user_id']
+    question_id = data_manager.get_question_id_by_answer_id(answer_id)
+    if user_id == data_manager.get_user_id_by_answer_id(answer_id):
+        question_id, image_path = data_manager.delete_answer_by_id(answer_id)
+        util.delete_image_files([image_path])
+        return redirect(f'/question/{question_id}')
+    else:
+        return redirect(f'/question/{question_id}')
+
 
 
 @app.route('/question/<question_id>/edit', methods=['GET', 'POST'])
 @util.is_logged_in
 def update_question(question_id):
+    user_id = session['user_id']
     question = data_manager.get_question_data_by_id(question_id)
-    if request.method == 'GET':
+    if request.method == 'GET' and user_id == data_manager.get_user_id_by_question_id(question_id):
         return render_template('edit_question.html', question=question)
-    elif request.method == 'POST':
+    elif request.method == 'POST' and user_id == data_manager.get_user_id_by_question_id(question_id):
+
         title = request.form['title']
         message = request.form['message']
         new_image_file = request.files['image']
@@ -235,6 +241,8 @@ def update_question(question_id):
             if remove_image_checkbox:
                 util.delete_image_files([question['image']])
             data_manager.update_question(title, message, question_id, remove_image_checkbox)
+        return redirect(f'/question/{question_id}')
+    else:
         return redirect(f'/question/{question_id}')
 
 
@@ -365,39 +373,51 @@ def search():
 @app.route('/comments/<comment_id>/delete')
 @util.is_logged_in
 def delete_comments(comment_id):
-    question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
-    data_manager.delete_comment(comment_id)
+    question_id= data_manager.get_question_id_by_comment_question_or_answer(comment_id)
+    user_id = session['user_id']
+    if user_id == data_manager.get_user_id_by_comment_id(comment_id):
+        data_manager.delete_comment(comment_id)
     return redirect(f'/question/{question_id}')
 
 
 @app.route('/question/<question_id>/delete_image')
 @util.is_logged_in
 def delete_image_to_question(question_id):
-    image_path = data_manager.delete_image_from_question(question_id)
-    util.delete_image_files([image_path])
+    user_id = session['user_id']
+    if user_id == data_manager.get_user_id_by_question_id(question_id):
+        image_path = data_manager.delete_image_from_question(question_id)
+        util.delete_image_files([image_path])
     return redirect(f'/question/{question_id}')
 
 
 @app.route('/answer/<answer_id>/delete_image')
 @util.is_logged_in
 def delete_image_to_answer(answer_id):
-    question_id, image_path = data_manager.delete_image_from_answer(answer_id)
-    util.delete_image_files(image_path)
+    question_id = data_manager.get_question_id_by_answer_id(answer_id)
+    user_id = session['user_id']
+    if user_id == data_manager.get_user_id_by_answer_id(answer_id):
+        question_id, image_path = data_manager.delete_image_from_answer(answer_id)
+        util.delete_image_files(image_path)
     return redirect(f'/question/{question_id}')
 
 
 @app.route('/comment/<comment_id>/edit', methods=['GET', 'POST'])
 @util.is_logged_in
 def update_comment(comment_id):
+    user_id = session['user_id']
+    question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
     if request.method == 'POST':
         message = request.form['message']
         data_manager.update_comment(comment_id, message)
-        question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
+
         return redirect(f'/question/{question_id}')
-    elif request.method == 'GET':
+    elif request.method == 'GET' and user_id == data_manager.get_user_id_by_comment_id(comment_id):
         comment = data_manager.get_comment_by_id(comment_id)
-        question_id = data_manager.get_question_id_by_comment_question_or_answer(comment_id)
+
         return render_template('edit_comments.html', comment=comment, question_id=question_id)
+    else:
+        return redirect(f'/question/{question_id}')
+
 
 
 @app.template_filter('highlight_search_phrase')
@@ -414,7 +434,7 @@ def highlight_search_phrase(value, search_phrase):
 
         stop_index = start_index + len(search_phrase)
         original_substring = highlighted_value[start_index:stop_index]
-        highlighted = f'<span style="background-color:lightgreen;">{original_substring}</span>'
+        highlighted = f'<span style="background-color:#1e65ff;">{original_substring}</span>'
         highlighted_value = f'{highlighted_value[:start_index]}{highlighted}{highlighted_value[stop_index:]}'
         start_index += len(highlighted)
 

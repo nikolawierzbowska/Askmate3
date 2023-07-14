@@ -1,30 +1,25 @@
 {% extends 'layout_table.html' %}
+{% block title %}Add answer{% endblock %}
 
-{% block title %}add answer{% endblock %}
-{% block page_header %}Add Answer{% endblock %}
-{% block options %}
-<p>
-    <a href="/question/{{ question_id }}">
-        <button>Go back</button>
-    </a>
-</p>
+{% block header %}
+<h1>ASK MATE</h1>
 {% endblock %}
-{% block body %}
+
+{% block nav %}
+     <ul>
+         <li><a href="/logout">Log out</a><li>
+         <li><a href="/question/{{ question_id }}">Go back</a></li>
+         <li><a href="/">Main page</a></li>
+     </ul>
+{% endblock %}
+
+{% block main %}
+<h2>Add Answer</h2>
     <form action="/question/{{question_id}}/new_answer" method="POST" enctype="multipart/form-data">
-        <div>
             <label for="message">Answer:</label>
             <textarea id="message" name="message" required></textarea>
-        </div>
-        <p>
-            <div>
-                <label for="image">Image:</label>
-                <input type="file" id="image" name="image">
-            </div>
-        </p>
-        <P>
-            <div>
-                <input type="submit" value="Submit">
-            </div>
-        </P>
+            <label for="image">Image:</label>
+            <input type="file" id="image" name="image">
+    <button id="submit" type="submit" value="Submit" >Submit</button>
     </form>
 {% endblock %}

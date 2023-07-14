@@ -3,6 +3,37 @@ import util
 
 
 @connection.connection_handler
+def get_user_id_by_question_id(cursor, question_id):
+    cursor.execute(""" 
+                    SELECT user_id
+                    FROM question
+                    WHERE id = %(question_id)s;
+                    """, {"question_id": question_id})
+    return cursor.fetchone()["user_id"]
+
+
+@connection.connection_handler
+def get_user_id_by_answer_id(cursor, answer_id):
+    cursor.execute("""
+                    SELECT user_id
+                    FROM answer
+                    WHERE id = %(answer_id)s;
+                    """, {'answer_id': answer_id})
+    return cursor.fetchone()['user_id']
+
+
+@connection.connection_handler
+def get_user_id_by_comment_id(cursor, comment_id):
+    cursor.execute("""
+                    SELECT user_id
+                    FROM comment
+                    WHERE id = %(comment_id)s;
+                    """, {'comment_id': comment_id})
+    return cursor.fetchone()['user_id']
+
+
+
+@connection.connection_handler
 def add_user(cursor, username, email, hashed_password):
     registration_date = util.get_time()
     cursor.execute("""
