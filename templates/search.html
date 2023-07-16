@@ -30,7 +30,7 @@
          <tr>
              {% for column in columns %}
             <th>
-                {{ column.order_by }}
+                {{ column.label }}
                 <div class="sort-arrow">
                     <a href="/search?q={{ search_phrase }}&order_by={{ column.order_by }}&order_direction=asc">&#128316;</a>
                     <a href="/search?q={{ search_phrase }}&order_by={{ column.order_by }}&order_direction=desc">&#128317;</a>

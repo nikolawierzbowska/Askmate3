@@ -75,6 +75,17 @@
     text-transform: uppercase;
 }
 
+.name {
+  
+    margin-right: 150px;
+    font-size: 2vh;
+    font-weight: bolder;
+    color: #1e65ff;
+
+
+}
+
+
 
 .nav ul li a:hover {
     opacity: 0.2;
@@ -398,7 +409,5 @@ input, textarea {
     border-color: #1c1f59;
     border-style: solid;
     border-width: 1px;
-
-
 
 }

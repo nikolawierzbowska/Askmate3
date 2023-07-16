@@ -91,8 +91,8 @@ def get_questions_by_user_id(cursor, user_id):
     cursor.execute("""
                     SELECT id, title, message, image
                     FROM question
-                    WHERE user_id = %s;
-                    """, user_id)
+                    WHERE user_id = %(user_id)s;
+                    """, {"user_id":user_id})
     return cursor.fetchall()
 
 
@@ -101,18 +101,18 @@ def get_answers_by_user_id(cursor, user_id):
     cursor.execute("""
                     SELECT id, question_id, message, image
                     FROM answer
-                    WHERE user_id = %s;
-                    """, user_id)
+                    WHERE user_id = %(user_id)s;
+                    """,  {"user_id":user_id})
     return cursor.fetchall()
 
 
 @connection.connection_handler
 def get_comments_by_user_id(cursor, user_id):
     cursor.execute("""
-                    SELECT id, question_id, message
+                    SELECT id, question_id, answer_id, message
                     FROM comment
-                    WHERE user_id = %s;
-                    """, user_id)
+                    WHERE user_id = %(user_id)s;
+                    """,  {"user_id":user_id})
     return cursor.fetchall()
 
 

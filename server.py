@@ -123,6 +123,9 @@ def user_detail_page(user_id):
     questions = data_manager.get_questions_by_user_id(user_id)
     answers = data_manager.get_answers_by_user_id(user_id)
     comments = data_manager.get_comments_by_user_id(user_id)
+    for comment in comments:
+        if comment['question_id'] is None:
+            comment['question_id'] = data_manager.get_question_id_by_answer_id(comment['answer_id'])
     return render_template('user_details_page.html', user=user, questions=questions, answers=answers, comments=comments)
 
 
@@ -444,8 +447,9 @@ def highlight_search_phrase(value, search_phrase):
 @app.route('/answer/<answer_id>/edit', methods=['GET', 'POST'])
 @util.is_logged_in
 def update_answers(answer_id):
+    user_id = session['user_id']
     answer = data_manager.get_answer_by_id(answer_id)
-    if request.method == 'GET':
+    if request.method == 'GET' and user_id == data_manager.get_user_id_by_answer_id(answer_id):
         return render_template('edit_answer.html', answer=answer)
     elif request.method == "POST":
         image_file = request.files['image']
@@ -454,6 +458,8 @@ def update_answers(answer_id):
         message = request.form['message']
         data_manager.update_answer(message, answer_id)
         data_manager.update_image(answer_id, image_file)
+        return redirect(f"/question/{answer['question_id']}")
+    else:
         return redirect(f"/question/{answer['question_id']}")
 
 
