@@ -1,28 +1,29 @@
 {% extends 'layout_table.html' %}
 {% block title %}Tags{% endblock %}
-{% block page_header %}List of tags{% endblock %}
-{% block options %}
-<div class="menu">
-    <p>
-        <a href="/">
-            <button>Main</button>
-        </a>
-    </p>
-</div>
+
+{% block header %}
+<h1>ASK MATE</h1>
 {% endblock %}
-{% block body %}
-    <table>
+
+{% block nav %}
+     <ul>
+         <li><a href="/logout">Log out</a><li>
+         <li><a href="/">Main page</a></li>
+         <li><a href="/users">Users</a></li>
+     </ul>
+{% endblock %}
+
+{% block main %}
+    <h2>List of tags</h2>
+
+    <table class="main_table">
         <thead>
             <tr>
                 <th>
-                    <div class="header-cell">
-                        Name of tag
-                    </div>
+                    Name of tag
                 </th>
                 <th>
-                    <div class="header-cell">
-                        Number of questions
-                    </div>
+                    Number of questions
                 </th>
             </tr>
         </thead>

@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+    {% block head %}
     <meta charset="UTF-8">
-    <title>{% block title %}ASK MATE{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/stylesheet.css">
+    <title>{% block title %}{% endblock %}</title>
+    {% endblock %}
 </head>
+
 <body>
-<p>
-<a href="/logout">
-    <button>Log out</button>
-</a>
-</p>
 
-
-<h1>{% block page_header %}{% endblock %}</h1>
-<div class="buttons">{% block options %}
-
-
-{% endblock %}</div>
-<div class="content-form">
+<div class="container">
+    <header class="header">{% block header %}{% endblock %}</header>
+    <nav class="nav">{% block nav %}{% endblock %}</nav>
+    <main class="main">{% block main %}{% endblock %}</main>
+    <footer class="footer">
+        {% block footer %}
+            <p>&copy; Copyright 2023 by Emil, Ilona, Justyna, Lukasz, Monika, Nikola </p>
+             <p>Follow us</p>
+            <img src='/static/uploads/link..png' style="width:15px" alt="logo linkedin">
+            <img src='/static/uploads/github-logo.png' style="width:15px" alt="logo github">
+    {% endblock %}
+</footer>
 </div>
-{% block body %}{% endblock %}
 </body>
 </html>

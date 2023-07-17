@@ -1,24 +1,25 @@
 {% extends 'layout_table.html' %}
 {% block title %}Users list{% endblock %}
-{% block page_header %}Users list{% endblock %}
-{% block options %}
-<div class="menu">
-    <p>
-        <a href="/">
-            <button>Main</button>
-        </a>
-    </p>
-</div>
+
+{% block header %}
+<h1>ASK MATE</h1>
 {% endblock %}
-{% block body %}
-    <table>
+
+{% block nav %}
+    <ul>
+        <li><a href="/logout">Logout</a><li>
+        <li><a href="/">Main page</a></li>
+    </ul>
+{% endblock %}
+
+{% block main %}
+    <h2>Users List</h2>
+    <table class="main_table" >
         <thead>
             <tr>
                 {% for header in LIST_USERS_HEADERS %}
                 <th>
-                    <div class="header-cell">
-                        {{ header }}
-                    </div>
+                    {{ header }}
                 </th>
                 {% endfor %}
             </tr>
@@ -27,7 +28,7 @@
         <tbody>
             {% for user in users %}
             <tr>
-                <td><a href="/user/{{ user.id }}">{{ user.username }}</a>
+                <td class="title" ><a href="/user/{{ user.id }}">{{ user.username }}</a>
                 </td>
                 <td>{{ user.registration_date }}</td>
                 <td>{{ user.questions_number }}</td>
@@ -38,4 +39,5 @@
             {% endfor %}
         </tbody>
     </table>
+    <br><br><br><br><br><br><br>
 {% endblock %}

@@ -1,51 +1,36 @@
 {% extends 'layout_table.html' %}
-{% block title %}question_&_answers{% endblock %}
-{% block page_header %}Question & Answers{% endblock %}
-{% block options %}
-<div class="menu">
-    <p>
-        <a href="/">
-            <button>Main</button>
-        </a>
-    </p>
-    <p>
-        <a href="/list">
-            <button>List of questions</button>
-        </a>
-    </p>
-    <p>
-        <a href="/tags">
-            <button>List of tags</button>
-        </a>
-    </p>
-    <p>
-        <a href="/question/{{ question.id }}/new_answer">
-            <button>Add new answer</button>
-        </a>
-    </p>
-    <p>
-        <a href='/question/{{ question.id }}/delete'>
-            <button>Delete question</button>
-        </a>
-    </p>
-    <p>
-        <a href='/question/{{ question.id }}/edit'>
-            <button>Edit question</button>
-        </a>
-    </p>
-    <p>
-        <a href='/question/{{ question.id }}/new_comment'>
-            <button>Comment question</button>
-        </a>
-    </p>
-    <p>
-        <a href='/question/{{ question.id }}/new_tag'>
-            <button>Add tag</button>
-        </a>
-    </p>
-</div>
+{% block title %}Question_&_answers{% endblock %}
+
+{% block header %}
+<h1>ASK MATE</h1>
 {% endblock %}
-{% block body %}
+
+{% block nav %}
+    {% if is_logged %}
+     <ul>
+         <li><a href="/logout">Logout</a><li>
+         <li><a href="/">Main page</a></li>
+         <li><a href="/list">List of questions</a></li>
+         <li><a href="/question/{{ question.id }}/new_answer">Add new answer</a></li>
+         <li><a href="/question/{{ question.id }}/delete">Delete question</a></li>
+         <li><a href="/question/{{ question.id }}/edit">Edit question</a></li>
+         <li><a href="/question/{{ question.id }}/new_comment">Add comment</a></li>
+         <li><a href="/question/{{ question.id }}/new_tag">Add tag</a></li>
+     </ul>
+    {% else %}
+        <ul>
+            <li><a href="/">Main page</a></li>
+            <li><a href="/registration">Registration</a></li>
+            <li><a href="/login">Login</a></li>
+            <li><a href="/list">List of questions</a></li>
+            <li><a href="/tags"> List of tags</a></li>
+        </ul>
+    {% endif %}
+{% endblock %}
+
+{% block main %}
+    <h2>Question & Answers</h2>
+
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     <ul class="messages">
@@ -55,7 +40,7 @@
     </ul>
   {% endif %}
 {% endwith %}
-<table>
+<table class="main_table">
     <tr>
         <th>Question</th>
         <th>Message</th>
@@ -63,79 +48,63 @@
     </tr>
     <tr>
         <td>
-            <div class="votes">
-                {{ question['title'] }}
-                <div class="thumb">
-                    <a href="/question/{{ question.id }}/vote_up?source=question">&#128077;</a>
-                    <a href="/question/{{ question.id }}/vote_down?source=question">&#128078;</a>
-                </div>
+            {{ question['title'] }}
+            <div class="black_arrow">
+                <a href="/question/{{ question.id }}/vote_up?source=question">&#129093;</a>
+                 <a href="/question/{{ question.id }}/vote_down?source=question">&#129095;</a>
             </div>
         </td>
         <td>
-            <div class="button-container">
-                {{ question['message'] }}<br>
+                {{ question['message'] }}
+                <br>
                 {% if tags|length > 0 %}
                     <i>Tags: </i>
+
                     {% for tag in tags %}
-                        <button>{{ tag.name }}</button>
-                        <div class="small-icon">
-                            <a href="/question/{{question.id}}/tag/{{tag.id}}/delete">
-                                <button>&#10060;</button></a>
-                        </div>
+                       <button class="button_tag">{{ tag.name }}</button>
+
+                            <a class="remove_icon" href="/question/{{question.id}}/tag/{{tag.id}}/delete">&#127367;</a>
                     {% endfor %}
                 {% endif %}
-            </div>
+
         </td>
         <td>
-            <span class="remove_img">
-                {% if question['image'] %}
-                    <img src="../{{ question['image'] }}" alt="Question Image" style="max-width: 150px;">
-                    <div class="del_img small-icon">
-                            <a href="/question/{{ question.id }}/delete_image">
-                                <button type="button" id="remove_image" name="">&#10060;</button>
-                            </a>
-                        </div>
-                {% endif %}
-            </span>
+            {% if question['image'] %}
+                <img class="image_main" src="../{{ question['image'] }}" alt="Question Image" style="max-width: 150px;">
+                    <a class="remove_icon" href="/question/{{ question.id }}/delete_image">&#127367;
+                    </a>
+            {% endif %}
         </td>
     </tr>
 </table>
-
-<table>
-    <tr>
-        <th colspan="2">Comments to question</th>
-    </tr>
+<br><br>
+<table class="main_table">
     <tr>
         <th>Date</th>
-        <th>Message</th>
+        <th>Comments to question</th>
     </tr>
     {% for comment in comments %}
         <tr>
             <td>{{ comment.submission_time }}</td>
             <td>
-                <div class="cell-content cell-text">
                     {{ comment.message }}
+            <a class="remove_icon" href="/comments/{{ comment.id }}/delete"
+                           onclick="return confirm('Do you want to delete this comment?')">&#127367;</a>
+                        <a class="edit_icon" href='/comment/{{ comment.id }}/edit'>&#9998;</a>
+            <br>
                     {% if comment.edited_count != None %}
-                    <p>
-                        <button name="number_of_edit"><strong> Number of editions: {{ comment.edited_count }}</strong>
+                        <button class="number_of_edit" name="number_of_edit">
+                            Number of editions: {{ comment.edited_count }}
                         </button>
-                    </p>
+                        <div class="sub_time">{{ comment.submission_time }}</div>
                     {% endif %}
-                    <span class="edit-delete-buttons small-icon">
-                        <a href="/comments/{{ comment.id }}/delete"
-                           onclick="return confirm('Do you want to delete this comment?')">
-                            <button type="button" id="remove_comment" name="">&#10060;</button>
-                        </a>
-                        <a href='/comment/{{ comment.id }}/edit'>
-                            <button type="button" id="edit_comment" name="">&#9998;</button>
-                        </a>
-                    </span>
-                </div>
+
             </td>
         </tr>
     {% endfor %}
 </table>
-<table>
+    <br><br>
+<table class="main_table">
     <tr>
         <th>Date</th>
         <th>Votes</th>
@@ -144,95 +113,67 @@
         <th>Image</th>
     </tr>
     {% for answer in answers %}
-        <tr>
+        <tr  class="answer">
             <td>{{ answer.submission_time }}</td>
             <td>
-                <div class="votes">
-                    {{ answer.vote_number }}
-                    <div class="thumb">
-                        <a href="/answer/{{ answer.id }}/vote_up">&#128077;</a>
-                        <a href="/answer/{{ answer.id }}/vote_down">&#128078;</a>
-                    </div>
+                {{ answer.vote_number }}
+                <div class="black_arrow">
+                <a href="/answer/{{ answer.id }}/vote_up">&#129093;</a>
+                <a href="/answer/{{ answer.id }}/vote_down">&#129095;</a>
                 </div>
             </td>
             <td>
-                <div class="cell-content cell-text">
-                    <span {% if answer.is_accepted %}class="accepted"{% endif %}>{{ answer.message }}</span>
-                    <span class="edit-delete-buttons small-icon">
-                        <a href="/answer/{{ answer.id }}/delete">
-                            <button type="button" id="remove_image" name="">&#10060;</button>
-                        </a>
-                        <a href='/answer/{{ answer.id }}/edit'>
-                            <button type="button" id="edit_answer" name="">&#9998;</button>
-                        </a>
-                    </span>
-                        </div>
-                        <br>
-                <table class="comment">
-                            <tr>
-                                <th>
-                                    Comments
-                                    <span>
-                        <a href="/answer/{{ answer.id }}/new_comment">
-                        <button>&#10133;</button>
-                        </a>
-                    </span>
-                        </th>
-                    </tr>
-                    {% for comment in comments_to_answers %}
-                        {% if comment.answer_id == answer.id %}
-                            <tr>
-                                <td>
-                                    <div class="cell-content cell-text">
-                                        {{ comment.message }}
-                                        <span class="edit-delete-buttons small-icon">
-                            <a href="/comments/{{ comment.id }}/delete"
-                               onclick="return confirm('Do you want to delete this comment?')">
-                            <button type="button" id="remove_comment" name="">&#10060;</button>
-                            </a>
-                            <a href='/comment/{{ comment.id }}/edit'>
-                            <button type="button" id="edit_comment" name="">&#9998;</button>
-                            </a>
-                             </span>
-                                    </div>
-                                    <br>
-                                    <i>{{ comment.submission_time }}</i>
-                                    {% if comment.edited_count != None %}
-                                    <p>
-                                        <button name="number_of_edit"><strong> Number of
-                                            editions: {{ comment.edited_count }}</strong></button>
-                                    </p>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
-                </table>
+                <span  {% if answer.is_accepted %}class="accepted" {% endif %}> {{ answer.message }}</span>
+                    <a class="remove_icon" href="/answer/{{ answer.id }}/delete">&#127367;</a>
+                    <a class="edit_icon" href='/answer/{{ answer.id }}/edit'>&#9998;</a>
             </td>
             <td>
                 {% if not answer.is_accepted %}
                     <form action="/answers/{{ answer.id }}/mark_unmark_accepted" method="post">
-                        <button type="submit">Mark as Accepted</button>
+                        <button class="accepted_button" type="submit">Mark as Accepted</button>
                     </form>
                 {% else %}
                     <form action="/answers/{{ answer.id }}/mark_unmark_accepted" method="post">
-                        <button type="submit">Unmark Accepted</button>
+                        <button class="accepted_button" type="submit">Unmark Accepted</button>
                     </form>
                 {% endif %}
             </td>
             <td>
-                <div class="remove_img">
                     {% if answer.image %}
-                        <img src="../{{ answer.image }}" alt="Answer Image" style="max-width: 150px;">
-                        <div class="del_img small-icon">
-                            <a href="/answer/{{answer.id}}/delete_image">
-                                <button type="button" id="remove_image" name="">&#10060;</button>
-                            </a>
-                        </div>
+                        <img class="image_main" src="../{{ answer.image }}" alt="Answer Image" style="max-width: 150px;">
+                            <a class="remove_icon" href="/answer/{{answer.id}}/delete_image">&#127367;</a>
                     {% endif %}
-                </div>
             </td>
+
         </tr>
+
+        <tr>
+            <th colspan="5">
+                Comments to answer
+                <a class="plus" href="/answer/{{ answer.id }}/new_comment">&#10133;</a>
+            </th>
+
+        </tr>
+        {% for comment in comments_to_answers %}
+            {% if comment.answer_id == answer.id %}
+                <tr  class="comment_answer">
+                    <td colspan="5">
+                        {{ comment.message }}
+                        <a class="remove_icon" href="/comments/{{ comment.id }}/delete"
+                           onclick="return confirm('Do you want to delete this comment?')">&#127367;</a>
+                        <a class="edit_icon" href='/comment/{{ comment.id }}/edit'>&#9998;</a>
+                        {% if comment.edited_count != None %}
+                            <br>
+                            <button class="number_of_edit" name="number_of_edit">
+                                Number of editions: {{ comment.edited_count }}
+                            </button>
+                            <div class="sub_time">{{ comment.submission_time }}</div>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+
     {% endfor %}
 </table>
 {% endblock %}

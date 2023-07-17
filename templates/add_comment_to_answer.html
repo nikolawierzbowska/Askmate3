@@ -1,22 +1,24 @@
 {% extends 'layout_table.html' %}
+{% block title %}Comment answer{% endblock %}
 
-{% block title %}comment answer{% endblock %}
-{% block page_header %}Comment Answer{% endblock %}
-{% block options %}
-<p>
-    <a href="/question/{{ question_id }}">
-    <button>Go back</button>
-    </a>
-</p>
+{% block header %}
+<h1>ASK MATE</h1>
 {% endblock %}
-{% block body %}
+
+{% block nav %}
+     <ul>
+         <li><a href="/logout">Log out</a><li>
+         <li><a href="/question/{{ question_id }}">Go back</a></li>
+         <li><a href="/">Main page</a></li>
+     </ul>
+{% endblock %}
+
+{% block main %}
+<h2>Comment Answer</h2>
     <form action="/answer/{{ answer_id }}/new_comment" method="POST" enctype="multipart/form-data">
-        <div>
-            <label for="message">Comment:</label>
-            <textarea id="message" name="message" required></textarea>
-        </div>
-        <div>
-            <input type="submit" value="Submit">
-        </div>
+        <label for="message">Comment:</label>
+        <textarea id="message" name="message" required></textarea>
+        <br>
+        <button id="submit" type="submit" value="Submit" >Submit</button>
     </form>
 {% endblock %}

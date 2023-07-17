@@ -1,32 +1,39 @@
 {% extends 'layout_table.html' %}
-{% block title %}list questions{% endblock %}
-{% block page_header %}List Questions{% endblock %}
-{% block options %}
-<div class="menu">
-    <p>
-        <a href='{{ "/" }}'>
-            <button>Main</button>
-        </a>
-    </p>
-    <p>
-        <a href='{{ "/add_question" }}'>
-            <button>Add Question</button>
-        </a>
-    </p>
-</div>
+{% block title %}List questions{% endblock %}
+
+{% block header %}
+<h1>ASK MATE</h1>
 {% endblock %}
-{% block body %}
-    <table>
+
+{% block nav %}
+    {% if is_logged %}
+         <ul>
+             <li><a href="/logout">Logout</a><li>
+             <li><a href="/">Main page</a></li>
+             <li><a href="/users">Users</a></li>
+             <li><a href="/tags"> List of tags</a></li>
+             <li><a href='{{ "/add_question" }}'>Add Question</a></li>
+         </ul>
+    {% else %}
+        <ul>
+            <li><a href="/">Main page</a></li>
+            <li><a href="/registration">Registration</a></li>
+            <li><a href="/login">Login</a></li>
+        </ul>
+    {% endif %}
+{% endblock %}
+
+{% block main %}
+    <h2>List Questions</h2>
+    <table class="main_table">
         <thead>
             <tr>
                 {% for column in columns %}
                 <th>
-                    <div class="header-cell">
-                        {{ column.label }}
-                        <div class="sort-arrow">
-                            <a href="/list?order_by={{ column.order_by }}&order_direction=asc">&#128316;</a>
-                            <a href="/list?order_by={{ column.order_by }}&order_direction=desc">&#128317;</a>
-                        </div>
+                    {{ column.label }}
+                    <div class="sort-arrow">
+                        <a href="/list?order_by={{ column.order_by }}&order_direction=asc">&#128316;</a>
+                        <a href="/list?order_by={{ column.order_by }}&order_direction=desc">&#128317;</a>
                     </div>
                 </th>
                 {% endfor %}
@@ -40,20 +47,18 @@
                 <td>{{ question.submission_time }}</td>
                 <td>{{ question.view_number }}</td>
                 <td>
-                    <div class="vote">
-                        {{ question['vote_number'] }}
-                        <div class="thumb">
-                            <a href="/question/{{question.id}}/vote_up">&#x1F44D;</a>
-                            <a href="/question/{{question.id}}/vote_down">&#x1F44E;</a>
-                        </div>
+                    {{ question['vote_number'] }}
+                    <div class="black_arrow">
+                        <a href="/question/{{question.id}}/vote_up">&#129093;</a>
+                        <a href="/question/{{question.id}}/vote_down">&#129095;</a>
                     </div>
                 </td>
                 <td>{{ question.number_of_answers }}</td>
-                <td><a href="/question/{{ question.id }}">{{ question.title }}</a></td>
+                <td class="title"><a href="/question/{{ question.id }}">{{ question.title }}</a></td>
                 <td>{{ question.message }}</td>
                 <td>
                     {% if question.image %}
-                        <img src="{{ question.image }}" alt="Question Image" style="max-width: 150px;">
+                        <img class="image_main" src="{{ question.image }}" alt="Question Image" >
                     {% endif %}
                 </td>
             </tr>

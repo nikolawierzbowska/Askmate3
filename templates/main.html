@@ -1,32 +1,36 @@
-{% extends 'layout.html' %}
+{% extends 'layout_table.html' %}
+{% block title %}Ask Mate Main{% endblock %}
 
-{% block title %}ASK MATE MAIN{% endblock %}
+{% block header %}
+<h1>ASK MATE</h1>
+{% endblock %}
 
+{% block nav %}
+    {% if is_logged %}
+     <ul>
+         <li><a href="/logout">Logout</a><li>
+         <li><a href="/users">Users</a></li>
+         <li><a href="/list">List of questions</a></li>
+         <li><a href="/tags"> List of tags</a></li>
+     </ul>
+    {% else %}
+        <ul>
+            <li><a href="/registration">Registration</a></li>
+            <li><a href="/login">Login</a></li>
+            <li><a href="/list">List of questions</a></li>
+        </ul>
+    {% endif %}
+{% endblock %}
 
-{% block body %}
-
-
-<h1><a href="/list">ASK MATE</a></h1>
-
-    <p>
-    <a href="/registration"><button> Registration</button></a>
-    </p>
-    <p>
-    <a href="/login"><button> Login </button></a>
-    </p>
-    <p>
-    <a href="/tags"><button> List of tags</button></a>
-    </p>
-
-
+{% block main %}
 <div class="search-container">
     <form action="/search" method="GET">
         <label for="search"></label>
         <input type="text" id="search" name="q" placeholder="Search..." required>
-        <button type="submit">Search</button>
+        <button id ="button_search" type="submit">Search</button>
     </form>
 </div>
-<table class="main">
+<table class="main_table">
     <thead>
         <tr>
             <th>Submission Time</th>
@@ -45,11 +49,11 @@
             <td>{{ question.view_number }}</td>
             <td>{{ question['vote_number'] }}</td>
             <td>{{ question.number_of_answers }}</td>
-            <td><a href="/question/{{ question.id }}">{{ question.title }}</a></td>
+            <td class="title"><a href="/question/{{ question.id }}">{{ question.title }}</a></td>
             <td>{{ question.message }}</td>
             <td>
                 {% if question.image %}
-                    <img src="{{ question.image }}" alt="Question Image" style="max-width: 150px;">
+                    <img  class="image_main" src="{{ question.image }}" alt="Question Image">
                 {% endif %}
             </td>
         </tr>
@@ -57,3 +61,4 @@
     </tbody>
 </table>
 {% endblock %}
+
